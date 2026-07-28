@@ -32,6 +32,12 @@ jobs:
           extensions: mbstring, intl, pdo_sqlite, bcmath
           coverage: none
           tools: composer:v2
+      - name: Preparar ambiente de testes Laravel
+        run: |
+          set -Eeuo pipefail
+          test -f .env.example
+          cp -- .env.example .env
+          test -s .env
       - name: Validar Composer
         run: composer validate --strict --no-check-lock
       - name: Instalar dependências PHP
@@ -86,6 +92,20 @@ jobs:
             -f deploy/docker/docker-compose.yml \
             config >/dev/null
 
+      - name: Validar pacotes Dockge
+        run: |
+          cp deploy/dockge/dockge/.env.example deploy/dockge/dockge/.env
+          cp deploy/dockge/pdf2ofx/.env.example deploy/dockge/pdf2ofx/.env
+          docker compose \
+            --env-file deploy/dockge/dockge/.env \
+            -f deploy/dockge/dockge/compose.yaml \
+            config >/dev/null
+          docker compose \
+            --env-file deploy/dockge/pdf2ofx/.env \
+            -f deploy/dockge/pdf2ofx/compose.yaml \
+            config >/dev/null
+          bash deploy/dockge/install-vps.sh --help >/dev/null
+
   workflows:
     name: Workflows e scripts de implantação
     runs-on: ubuntu-latest
@@ -106,8 +126,21 @@ jobs:
           find deploy -type f -name "*.sh" -print0 \
             | xargs -0 -n1 bash -n
 
+      - name: Validar estrutura do Laravel
+        run: |
+          set -Eeuo pipefail
+          test -f apps/web/.env.example
+          test -f apps/web/composer.json
+          test -f apps/web/artisan
+          grep -Fq 'APP_ENV=local' apps/web/.env.example
+          grep -Fq 'DB_CONNECTION=pgsql' apps/web/.env.example
+          grep -Fq 'CONVERTER_BASE_URL=http://converter-api:8000' apps/web/.env.example
+
       - name: Testar espelhamento sequencial e retry
         run: bash deploy/scripts/tests/test-mirror-base-images.sh
+
+      - name: Testar instalador Dockge com Docker simulado
+        run: bash deploy/dockge/tests/test-install-vps.sh
 
       - name: Validar instalação da extensão Redis sem PECL REST
         run: |

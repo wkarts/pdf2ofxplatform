@@ -1,0 +1,22 @@
+name: dockge
+
+services:
+  dockge:
+    image: ${DOCKGE_IMAGE:-louislam/dockge:1}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${DOCKGE_HOST_PORT:-5001}:5001"
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      - /opt/dockge/data:/app/data
+      - ${DOCKGE_STACKS_DIR:-/opt/stacks}:${DOCKGE_STACKS_DIR:-/opt/stacks}
+      - /root/.docker:/root/.docker:ro
+    environment:
+      DOCKGE_STACKS_DIR: ${DOCKGE_STACKS_DIR:-/opt/stacks}
+    security_opt:
+      - no-new-privileges:true
+    logging:
+      driver: json-file
+      options:
+        max-size: "10m"
+        max-file: "5"

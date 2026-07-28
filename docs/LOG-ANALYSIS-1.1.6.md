@@ -1,4 +1,4 @@
-# Análise dos logs — versão 1.1.6
+# Análise dos logs — versão 1.1.7
 
 ## Resultado dos jobs
 

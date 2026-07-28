@@ -165,6 +165,19 @@ jobs:
           )
           rm -rf dist/docker-package
 
+          mkdir -p "dist/dockge-package/pdf2ofx-dockge-deployment-${VERSION}"
+          cp -a deploy/dockge/. "dist/dockge-package/pdf2ofx-dockge-deployment-${VERSION}/"
+          printf '%s\n' "$VERSION" > "dist/dockge-package/pdf2ofx-dockge-deployment-${VERSION}/VERSION"
+
+          (
+            cd dist/dockge-package
+            zip -qr "../pdf2ofx-dockge-deployment-${VERSION}.zip" \
+              "pdf2ofx-dockge-deployment-${VERSION}"
+            tar -czf "../pdf2ofx-dockge-deployment-${VERSION}.tar.gz" \
+              "pdf2ofx-dockge-deployment-${VERSION}"
+          )
+          rm -rf dist/dockge-package
+
           cat > "dist/container-images-${VERSION}.txt" <<EOF
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}
@@ -178,6 +191,8 @@ jobs:
               "pdf2ofx-platform-${VERSION}.tar.gz" \
               "pdf2ofx-docker-deployment-${VERSION}.zip" \
               "pdf2ofx-docker-deployment-${VERSION}.tar.gz" \
+              "pdf2ofx-dockge-deployment-${VERSION}.zip" \
+              "pdf2ofx-dockge-deployment-${VERSION}.tar.gz" \
               "container-images-${VERSION}.txt" \
               > "SHA256SUMS-${VERSION}.txt"
           )
@@ -204,6 +219,8 @@ jobs:
             dist/pdf2ofx-platform-${{ needs.prepare.outputs.version }}.tar.gz
             dist/pdf2ofx-docker-deployment-${{ needs.prepare.outputs.version }}.zip
             dist/pdf2ofx-docker-deployment-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/pdf2ofx-dockge-deployment-${{ needs.prepare.outputs.version }}.zip
+            dist/pdf2ofx-dockge-deployment-${{ needs.prepare.outputs.version }}.tar.gz
             dist/container-images-${{ needs.prepare.outputs.version }}.txt
             dist/SHA256SUMS-${{ needs.prepare.outputs.version }}.txt
 
@@ -218,4 +235,5 @@ jobs:
             echo "- Gateway: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}\`"
             echo "- Conversor: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-converter:${VERSION}\`"
             echo "- Pacote Docker: \`pdf2ofx-docker-deployment-${VERSION}.zip\`"
+            echo "- Pacote Dockge: \`pdf2ofx-dockge-deployment-${VERSION}.zip\`"
           } >> "$GITHUB_STEP_SUMMARY"

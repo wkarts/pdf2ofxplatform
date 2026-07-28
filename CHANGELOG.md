@@ -1,5 +1,57 @@
 # Changelog
 
+## [1.1.9] - 2026-07-28
+
+### Corrigido
+
+- adicionado `apps/web/.env.example`, ausente na estrutura Laravel;
+- corrigida a preparação do ambiente Laravel no CI, que executava dentro de `apps/web` e tentava copiar um arquivo inexistente;
+- adicionadas validações explícitas da estrutura Laravel e do arquivo de ambiente;
+- reforçada a validação de versão para impedir a regressão do caminho e do arquivo `.env.example`.
+
+### Validado
+
+- os três builds Docker reais já estavam aprovados no log analisado;
+- conversor Python, Docker Compose, Dockge, scripts e metadados estavam aprovados;
+- a única falha restante era `cp: cannot stat '.env.example'` no job Laravel.
+
+## [1.1.8] - 2026-07-28
+
+### Corrigido
+
+- teste do instalador Dockge passa a preservar explicitamente o Docker simulado após `sudo`;
+- removida a possibilidade de o CI baixar e iniciar o Dockge real durante a validação;
+- validações de arquivos protegidos são executadas com o mesmo contexto root da instalação;
+- limpeza do diretório temporário passou a funcionar mesmo quando os arquivos são criados como root;
+- ambiente Laravel de testes passa a criar `.env` antes do Composer, eliminando avisos de arquivo ausente.
+
+### Validado
+
+- instalação Dockge simulada sem acesso ao daemon Docker real;
+- permissões `0600` dos arquivos `.env`;
+- comandos Compose esperados registrados exclusivamente pelo mock;
+- scripts Shell, metadados, parsers e pacotes de implantação.
+
+## [1.1.7] - 2026-07-28
+
+### Adicionado
+
+- implantação completa com Dockge em `deploy/dockge/`;
+- instalador idempotente para Debian/Ubuntu, com instalação opcional do Docker;
+- criação automática de `/opt/dockge` e `/opt/stacks/pdf2ofx`;
+- geração segura de `APP_KEY`, senhas PostgreSQL/Redis e chave interna da API;
+- autenticação opcional no GHCR sem persistir o token no `.env` da aplicação;
+- scripts para atualização, migrations, backup, status, logs e health check;
+- modelos de Reverse Proxy do CloudPanel para a aplicação e para o Dockge;
+- pacote de release independente `pdf2ofx-dockge-deployment-X.Y.Z`.
+
+### Validado
+
+- sintaxe dos scripts Shell do Dockge;
+- configuração Compose do Dockge e da stack PDF2OFX;
+- consistência das imagens e metadados da versão;
+- geração dos pacotes ZIP e TAR.GZ do Dockge no workflow de release.
+
 ## [1.1.6] - 2026-07-28
 
 ### Corrigido
