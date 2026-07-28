@@ -69,6 +69,12 @@ assert_contains deploy/dockge/tests/test-install-vps.sh 'run_as_root env'
 assert_contains deploy/dockge/tests/test-install-vps.sh '"PATH=$TEMP_DIR/bin:$PATH"'
 assert_contains deploy/dockge/tests/test-install-vps.sh 'sem acesso ao daemon real'
 assert_contains .github/workflows/ci.yml 'Preparar ambiente de testes Laravel'
+assert_contains .github/workflows/ci.yml 'test -f .env.example'
+assert_contains .github/workflows/ci.yml 'cp -- .env.example .env'
+assert_contains .github/workflows/ci.yml 'Validar estrutura do Laravel'
+assert_contains apps/web/.env.example 'APP_ENV=local'
+assert_contains apps/web/.env.example 'DB_CONNECTION=pgsql'
+assert_contains apps/web/.env.example 'CONVERTER_BASE_URL=http://converter-api:8000'
 
 for required in \
     deploy/docker/compose.yaml \
@@ -102,7 +108,8 @@ for required in \
     deploy/dockge/cloudpanel/pdf2ofx-reverse-proxy.conf.example \
     deploy/dockge/cloudpanel/dockge-reverse-proxy.conf.example \
     docs/DOCKGE.md \
-    deploy/scripts/validate-gateway-image.sh; do
+    deploy/scripts/validate-gateway-image.sh \
+    apps/web/.env.example; do
     if [[ ! -f "$required" ]]; then
         echo "ERRO: arquivo obrigatório de implantação não encontrado: $required" >&2
         exit 1

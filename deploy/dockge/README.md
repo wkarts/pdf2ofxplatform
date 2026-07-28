@@ -35,7 +35,7 @@ VPS e execute:
 cd deploy/dockge
 sudo -E bash install-vps.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.8 \
+  --version 1.1.9 \
   --namespace wkarts
 ```
 
@@ -46,7 +46,7 @@ export GHCR_USER=wkarts
 export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES'
 sudo -E bash install-vps.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.8 \
+  --version 1.1.9 \
   --namespace wkarts
 ```
 
@@ -102,7 +102,7 @@ Pelo terminal da VPS ou terminal da stack:
 
 ```bash
 cd /opt/stacks/pdf2ofx
-bash scripts/update-version.sh 1.1.8
+bash scripts/update-version.sh 1.1.9
 ```
 
 O script:

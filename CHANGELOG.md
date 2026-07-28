@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.9] - 2026-07-28
+
+### Corrigido
+
+- adicionado `apps/web/.env.example`, ausente na estrutura Laravel;
+- corrigida a preparação do ambiente Laravel no CI, que executava dentro de `apps/web` e tentava copiar um arquivo inexistente;
+- adicionadas validações explícitas da estrutura Laravel e do arquivo de ambiente;
+- reforçada a validação de versão para impedir a regressão do caminho e do arquivo `.env.example`.
+
+### Validado
+
+- os três builds Docker reais já estavam aprovados no log analisado;
+- conversor Python, Docker Compose, Dockge, scripts e metadados estavam aprovados;
+- a única falha restante era `cp: cannot stat '.env.example'` no job Laravel.
+
 ## [1.1.8] - 2026-07-28
 
 ### Corrigido

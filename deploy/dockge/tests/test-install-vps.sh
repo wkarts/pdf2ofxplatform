@@ -44,7 +44,7 @@ run_as_root env \
     "MOCK_DOCKER_LOG=$MOCK_DOCKER_LOG" \
     bash "$ROOT_DIR/deploy/dockge/install-vps.sh" \
         --domain https://pdf2ofx.teste.local \
-        --version 1.1.8 \
+        --version 1.1.9 \
         --namespace wkarts \
         --app-port 18080 \
         --dockge-port 15001 \
@@ -63,7 +63,7 @@ permissions="$(run_as_root stat -c '%a' "$STACK_DIR/.env")"
 [[ "$permissions" == "600" ]]
 
 run_as_root grep -Fq 'APP_URL=https://pdf2ofx.teste.local' "$STACK_DIR/.env"
-run_as_root grep -Fq 'APP_IMAGE=ghcr.io/wkarts/pdf2ofx-app:1.1.8' "$STACK_DIR/.env"
+run_as_root grep -Fq 'APP_IMAGE=ghcr.io/wkarts/pdf2ofx-app:1.1.9' "$STACK_DIR/.env"
 run_as_root grep -Fq 'WEB_HOST_PORT=18080' "$STACK_DIR/.env"
 run_as_root grep -Fq 'DOCKGE_HOST_PORT=15001' "$TEMP_DIR/dockge/.env"
 

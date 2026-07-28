@@ -54,7 +54,7 @@ destaca lançamentos de baixa confiança e mantém o OFX editável antes do down
 ## Estrutura
 
 ```text
-apps/web                 Laravel, interface e metadados
+apps/web                 Laravel, interface, `.env.example` e metadados
 services/converter       FastAPI, Celery, PDF/OCR, parsers e OFX
 deploy                   Docker, Dockge, scripts e configuração CloudPanel
 docs                     arquitetura, API, parsers e implantação
@@ -93,7 +93,7 @@ executada sem PHP, Composer ou Python instalados na VPS:
 cd deploy/docker
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.8 \
+  --version 1.1.9 \
   --namespace wkarts \
   --port 8080
 ```
@@ -119,7 +119,7 @@ da stack:
 cd deploy/dockge
 sudo -E bash install-vps.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.8 \
+  --version 1.1.9 \
   --namespace wkarts
 ```
 
@@ -199,7 +199,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.8`
+`1.1.9`
 
 ## Licença
 

@@ -33,7 +33,11 @@ jobs:
           coverage: none
           tools: composer:v2
       - name: Preparar ambiente de testes Laravel
-        run: cp .env.example .env
+        run: |
+          set -Eeuo pipefail
+          test -f .env.example
+          cp -- .env.example .env
+          test -s .env
       - name: Validar Composer
         run: composer validate --strict --no-check-lock
       - name: Instalar dependências PHP
@@ -121,6 +125,16 @@ jobs:
         run: |
           find deploy -type f -name "*.sh" -print0 \
             | xargs -0 -n1 bash -n
+
+      - name: Validar estrutura do Laravel
+        run: |
+          set -Eeuo pipefail
+          test -f apps/web/.env.example
+          test -f apps/web/composer.json
+          test -f apps/web/artisan
+          grep -Fq 'APP_ENV=local' apps/web/.env.example
+          grep -Fq 'DB_CONNECTION=pgsql' apps/web/.env.example
+          grep -Fq 'CONVERTER_BASE_URL=http://converter-api:8000' apps/web/.env.example
 
       - name: Testar espelhamento sequencial e retry
         run: bash deploy/scripts/tests/test-mirror-base-images.sh
