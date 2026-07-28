@@ -1,0 +1,16 @@
+[Unit]
+Description=PDF2OFX Docker Compose
+Requires=docker.service
+After=docker.service network-online.target
+Wants=network-online.target
+
+[Service]
+Type=oneshot
+RemainAfterExit=yes
+WorkingDirectory=/opt/pdf2ofx
+ExecStart=/usr/bin/docker compose --env-file .env -f compose.yaml -f compose.production.yaml up -d
+ExecStop=/usr/bin/docker compose --env-file .env -f compose.yaml -f compose.production.yaml down
+TimeoutStartSec=0
+
+[Install]
+WantedBy=multi-user.target

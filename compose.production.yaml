@@ -1,0 +1,18 @@
+services:
+  gateway:
+    build: null
+    image: ${GATEWAY_IMAGE}
+  app:
+    build: null
+    image: ${APP_IMAGE}
+  queue:
+    image: ${APP_IMAGE}
+  scheduler:
+    image: ${APP_IMAGE}
+  converter-api:
+    build: null
+    image: ${CONVERTER_IMAGE}
+  converter-worker:
+    image: ${CONVERTER_IMAGE}
+  converter-cleaner:
+    image: ${CONVERTER_IMAGE}

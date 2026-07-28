@@ -1,0 +1,189 @@
+name: pdf2ofx
+
+services:
+  gateway:
+    build:
+      context: .
+      dockerfile: apps/web/docker/Dockerfile
+      target: gateway
+      args:
+        NGINX_BASE_IMAGE: ${NGINX_BASE_IMAGE:-nginx:1.28-alpine}
+    image: ${GATEWAY_IMAGE:-pdf2ofx-gateway:local}
+    restart: unless-stopped
+    ports:
+      - "127.0.0.1:${WEB_HOST_PORT:-8080}:8080"
+    depends_on:
+      app:
+        condition: service_healthy
+    networks:
+      - frontend
+      - backend
+    security_opt:
+      - no-new-privileges:true
+    read_only: true
+    tmpfs:
+      - /var/cache/nginx
+      - /var/run
+      - /tmp
+
+  app:
+    build:
+      context: .
+      dockerfile: apps/web/docker/Dockerfile
+      target: app
+      args:
+        PHP_BASE_IMAGE: ${PHP_BASE_IMAGE:-php:8.4-fpm-alpine}
+        COMPOSER_BASE_IMAGE: ${COMPOSER_BASE_IMAGE:-composer:2.8}
+    image: ${APP_IMAGE:-pdf2ofx-app:local}
+    restart: unless-stopped
+    env_file: [.env]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+      converter-api:
+        condition: service_healthy
+    networks: [backend]
+    volumes:
+      - web_storage:/var/www/html/storage
+    healthcheck:
+      test: ["CMD-SHELL", "php-fpm -t"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+
+  queue:
+    image: ${APP_IMAGE:-pdf2ofx-app:local}
+    restart: unless-stopped
+    command: ["php", "artisan", "queue:work", "redis", "--sleep=2", "--tries=3", "--timeout=900", "--max-time=3600"]
+    env_file: [.env]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [backend]
+    volumes:
+      - web_storage:/var/www/html/storage
+    security_opt:
+      - no-new-privileges:true
+
+  scheduler:
+    image: ${APP_IMAGE:-pdf2ofx-app:local}
+    restart: unless-stopped
+    command: ["php", "artisan", "schedule:work"]
+    env_file: [.env]
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    networks: [backend]
+    volumes:
+      - web_storage:/var/www/html/storage
+    security_opt:
+      - no-new-privileges:true
+
+  converter-api:
+    build:
+      context: .
+      dockerfile: services/converter/Dockerfile
+      args:
+        PYTHON_BASE_IMAGE: ${PYTHON_BASE_IMAGE:-python:3.13-slim-bookworm}
+    image: ${CONVERTER_IMAGE:-pdf2ofx-converter:local}
+    restart: unless-stopped
+    command: ["uvicorn", "pdf2ofx.api.main:app", "--host", "0.0.0.0", "--port", "8000", "--workers", "2", "--proxy-headers"]
+    env_file: [.env]
+    expose: ["8000"]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [backend]
+    volumes:
+      - converter_jobs:/data/jobs
+    tmpfs:
+      - /tmp/pdf2ofx:size=1024m,mode=1770
+    healthcheck:
+      test: ["CMD", "python", "-c", "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=5)"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+    security_opt:
+      - no-new-privileges:true
+
+  converter-worker:
+    image: ${CONVERTER_IMAGE:-pdf2ofx-converter:local}
+    restart: unless-stopped
+    command: ["celery", "-A", "pdf2ofx.workers.celery_app:celery_app", "worker", "--loglevel=INFO", "--concurrency=2", "--max-tasks-per-child=20"]
+    env_file: [.env]
+    depends_on:
+      redis:
+        condition: service_healthy
+    networks: [backend]
+    volumes:
+      - converter_jobs:/data/jobs
+    tmpfs:
+      - /tmp/pdf2ofx:size=2048m,mode=1770
+    security_opt:
+      - no-new-privileges:true
+
+  converter-cleaner:
+    image: ${CONVERTER_IMAGE:-pdf2ofx-converter:local}
+    restart: unless-stopped
+    command: ["sh", "-lc", "while true; do python -m pdf2ofx.cli cleanup; sleep 3600; done"]
+    env_file: [.env]
+    networks: [backend]
+    volumes:
+      - converter_jobs:/data/jobs
+    security_opt:
+      - no-new-privileges:true
+
+  redis:
+    env_file: [.env]
+    image: ${REDIS_IMAGE:-redis:8-alpine}
+    restart: unless-stopped
+    command: ["redis-server", "--appendonly", "yes", "--requirepass", "${REDIS_PASSWORD}"]
+    expose: ["6379"]
+    networks: [backend]
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD-SHELL', 'redis-cli -a "$${REDIS_PASSWORD}" ping | grep PONG']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+  postgres:
+    image: ${POSTGRES_IMAGE:-postgres:17-alpine}
+    restart: unless-stopped
+    environment:
+      POSTGRES_DB: ${DB_DATABASE}
+      POSTGRES_USER: ${DB_USERNAME}
+      POSTGRES_PASSWORD: ${DB_PASSWORD}
+    expose: ["5432"]
+    networks: [backend]
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U "$${POSTGRES_USER}" -d "$${POSTGRES_DB}"']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    security_opt:
+      - no-new-privileges:true
+
+networks:
+  frontend:
+  backend:
+    internal: true
+
+volumes:
+  web_storage:
+  converter_jobs:
+  redis_data:
+  postgres_data:

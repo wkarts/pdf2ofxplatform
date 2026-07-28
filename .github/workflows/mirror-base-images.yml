@@ -1,0 +1,40 @@
+name: Mirror base images to GHCR
+
+on:
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  packages: write
+
+jobs:
+  mirror:
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - source: php:8.4-fpm-alpine
+            target: pdf2ofx-base-php:8.4-fpm-alpine
+          - source: composer:2.8
+            target: pdf2ofx-base-composer:2.8
+          - source: nginx:1.28-alpine
+            target: pdf2ofx-base-nginx:1.28-alpine
+          - source: python:3.13-slim-bookworm
+            target: pdf2ofx-base-python:3.13-slim-bookworm
+          - source: redis:8-alpine
+            target: pdf2ofx-base-redis:8-alpine
+          - source: postgres:17-alpine
+            target: pdf2ofx-base-postgres:17-alpine
+    steps:
+      - uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Espelhar imagem
+        run: |
+          docker pull "${{ matrix.source }}"
+          docker tag "${{ matrix.source }}" \
+            "ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}"
+          docker push "ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}"
