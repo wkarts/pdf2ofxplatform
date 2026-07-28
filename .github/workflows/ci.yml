@@ -211,7 +211,7 @@ jobs:
               docker run --rm --entrypoint php "${{ matrix.image }}:${GITHUB_SHA}" artisan --version
               ;;
             gateway)
-              docker run --rm --entrypoint nginx "${{ matrix.image }}:${GITHUB_SHA}" -t
+              bash deploy/scripts/validate-gateway-image.sh "${{ matrix.image }}:${GITHUB_SHA}"
               ;;
             runtime)
               docker run --rm --entrypoint python "${{ matrix.image }}:${GITHUB_SHA}" -c 'import pdf2ofx; print(pdf2ofx.__version__)'

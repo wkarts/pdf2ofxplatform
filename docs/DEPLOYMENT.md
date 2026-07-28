@@ -52,7 +52,7 @@ export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES' # somente para pacotes privados
 
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.5 \
+  --version 1.1.6 \
   --namespace wkarts \
   --port 8080
 ```
@@ -83,7 +83,7 @@ A release só é criada quando as três imagens forem publicadas com sucesso.
 ```bash
 cd /opt/pdf2ofx/deploy/docker
 bash update.sh 1.1.6
-bash rollback.sh 1.1.5
+bash rollback.sh 1.1.6
 ```
 
 ## Backup e restauração

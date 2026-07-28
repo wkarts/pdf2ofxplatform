@@ -55,6 +55,9 @@ assert_contains apps/web/docker/Dockerfile "COPY apps/web/public /var/www/html/p
 assert_contains .github/workflows/release.yml 'pdf2ofx-docker-deployment-${VERSION}.zip'
 assert_not_contains apps/web/docker/Dockerfile "pecl install redis"
 assert_not_contains apps/web/docker/Dockerfile "COPY --from=app /var/www/html/public"
+assert_contains .github/workflows/ci.yml 'bash deploy/scripts/validate-gateway-image.sh "${{ matrix.image }}:${GITHUB_SHA}"'
+assert_contains deploy/scripts/validate-gateway-image.sh '--add-host app:127.0.0.1'
+assert_contains deploy/scripts/validate-gateway-image.sh 'http://127.0.0.1:8080/health'
 
 for required in \
     deploy/docker/compose.yaml \
@@ -71,7 +74,8 @@ for required in \
     deploy/docker/status.sh \
     deploy/docker/logs.sh \
     deploy/docker/cloudpanel/reverse-proxy.conf.example \
-    deploy/docker/systemd/pdf2ofx.service; do
+    deploy/docker/systemd/pdf2ofx.service \
+    deploy/scripts/validate-gateway-image.sh; do
     if [[ ! -f "$required" ]]; then
         echo "ERRO: arquivo obrigatório de implantação não encontrado: $required" >&2
         exit 1

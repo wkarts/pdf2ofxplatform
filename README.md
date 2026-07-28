@@ -93,7 +93,7 @@ executada sem PHP, Composer ou Python instalados na VPS:
 cd deploy/docker
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.5 \
+  --version 1.1.6 \
   --namespace wkarts \
   --port 8080
 ```
@@ -180,7 +180,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.5`
+`1.1.6`
 
 ## Licença
 

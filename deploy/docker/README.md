@@ -82,7 +82,7 @@ O token não é gravado no arquivo `.env`.
 cd /opt/pdf2ofx/deploy/docker
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.5 \
+  --version 1.1.6 \
   --namespace wkarts \
   --port 8080
 ```
@@ -164,7 +164,7 @@ artefatos, executa migrations, recria os containers e valida a aplicação.
 ## Rollback
 
 ```bash
-bash rollback.sh 1.1.5
+bash rollback.sh 1.1.6
 ```
 
 O rollback troca as imagens da aplicação. Migrações destrutivas de banco devem
