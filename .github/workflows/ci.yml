@@ -13,7 +13,7 @@ jobs:
     name: Metadados da release
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - name: Validar consistência da versão
         run: bash deploy/scripts/validate-version.sh
 
@@ -23,7 +23,7 @@ jobs:
       run:
         working-directory: apps/web
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
@@ -49,7 +49,7 @@ jobs:
       PDF2OFX_DATA_DIR: /tmp/pdf2ofx-tests
       PDF2OFX_OCR_ENABLED: "false"
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
@@ -63,6 +63,73 @@ jobs:
   compose:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - uses: actions/checkout@v6
       - run: cp .env.example .env
       - run: docker compose --env-file .env config >/dev/null
+
+  workflows:
+    name: Workflows e scripts de implantação
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v6
+
+      - name: Validar sintaxe YAML dos workflows
+        run: |
+          ruby -ryaml -e '
+            Dir[".github/workflows/*.{yml,yaml}"].sort.each do |file|
+              YAML.safe_load(File.read(file), aliases: true)
+              puts "OK: #{file}"
+            end
+          '
+
+      - name: Validar scripts Shell
+        run: |
+          find deploy/scripts -type f -name "*.sh" -print0 \
+            | xargs -0 -n1 bash -n
+
+      - name: Testar espelhamento sequencial e retry
+        run: bash deploy/scripts/tests/test-mirror-base-images.sh
+
+      - name: Impedir actions obsoletas e espelhamento multi-arquitetura em paralelo
+        run: |
+          set -Eeuo pipefail
+
+          if grep -R -nE \
+            '^[[:space:]]*uses:[[:space:]]*(actions/checkout@v5|docker/login-action@v3|docker/setup-buildx-action@v3|docker/build-push-action@v6|docker/metadata-action@v5|actions/upload-artifact@v4)([[:space:]]|$)' \
+            .github/workflows; then
+            echo "ERRO: foram encontradas versões obsoletas de GitHub Actions." >&2
+            exit 1
+          fi
+
+          forbidden_mirror_command="docker buildx imagetools"
+          forbidden_mirror_command+=" create"
+
+          if grep -R -n "$forbidden_mirror_command" .github/workflows; then
+            echo "ERRO: o espelhamento multi-arquitetura não deve ser usado neste projeto." >&2
+            exit 1
+          fi
+
+  dockerfiles:
+    name: Validar Dockerfile ${{ matrix.target }}
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      max-parallel: 1
+      matrix:
+        include:
+          - file: apps/web/docker/Dockerfile
+            target: app
+          - file: apps/web/docker/Dockerfile
+            target: gateway
+          - file: services/converter/Dockerfile
+            target: runtime
+    steps:
+      - uses: actions/checkout@v6
+      - uses: docker/setup-buildx-action@v4
+      - name: Executar verificação estática do Dockerfile
+        run: |
+          docker buildx build \
+            --check \
+            --file "${{ matrix.file }}" \
+            --target "${{ matrix.target }}" \
+            .

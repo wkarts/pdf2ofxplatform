@@ -2,7 +2,19 @@ name: Mirror base images to GHCR
 
 on:
   workflow_call:
+    inputs:
+      force:
+        description: Recriar imagens-base mesmo quando já existirem no GHCR
+        required: false
+        default: false
+        type: boolean
   workflow_dispatch:
+    inputs:
+      force:
+        description: Recriar imagens-base mesmo quando já existirem no GHCR
+        required: true
+        default: false
+        type: boolean
 
 permissions:
   contents: read
@@ -14,42 +26,42 @@ concurrency:
 
 jobs:
   mirror:
-    name: Mirror ${{ matrix.target }}
+    name: Espelhar imagens-base linux/amd64
     runs-on: ubuntu-latest
-    strategy:
-      fail-fast: false
-      matrix:
-        include:
-          - source: php:8.4-fpm-alpine
-            target: pdf2ofx-base-php:8.4-fpm-alpine
-          - source: composer:2.8
-            target: pdf2ofx-base-composer:2.8
-          - source: nginx:1.28-alpine
-            target: pdf2ofx-base-nginx:1.28-alpine
-          - source: python:3.13-slim-bookworm
-            target: pdf2ofx-base-python:3.13-slim-bookworm
-          - source: redis:8-alpine
-            target: pdf2ofx-base-redis:8-alpine
-          - source: postgres:17-alpine
-            target: pdf2ofx-base-postgres:17-alpine
+    timeout-minutes: 45
     steps:
-      - name: Configurar Docker Buildx
-        uses: docker/setup-buildx-action@v3
-
       - name: Autenticar no GHCR
-        uses: docker/login-action@v3
+        uses: docker/login-action@v4
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Espelhar manifesto multi-arquitetura
+      - name: Obter scripts de implantação
+        uses: actions/checkout@v6
+
+      - name: Espelhar imagens sequencialmente com retry
         env:
-          SOURCE_IMAGE: docker.io/library/${{ matrix.source }}
-          TARGET_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}
+          FORCE_MIRROR: ${{ inputs.force || false }}
+          GHCR_OWNER: ${{ github.repository_owner }}
+        run: bash deploy/scripts/mirror-base-images.sh
+
+      - name: Validar catálogo completo de imagens-base
+        env:
+          GHCR_OWNER: ${{ github.repository_owner }}
         run: |
           set -Eeuo pipefail
-          docker buildx imagetools create \
-            --tag "$TARGET_IMAGE" \
-            "$SOURCE_IMAGE"
-          docker buildx imagetools inspect "$TARGET_IMAGE"
+
+          images=(
+            "pdf2ofx-base-php:8.4-fpm-alpine"
+            "pdf2ofx-base-composer:2.8"
+            "pdf2ofx-base-nginx:1.28-alpine"
+            "pdf2ofx-base-python:3.13-slim-bookworm"
+            "pdf2ofx-base-redis:8-alpine"
+            "pdf2ofx-base-postgres:17-alpine"
+          )
+
+          for image in "${images[@]}"; do
+            docker manifest inspect "ghcr.io/${GHCR_OWNER}/${image}" >/dev/null
+            echo "OK: ghcr.io/${GHCR_OWNER}/${image}"
+          done

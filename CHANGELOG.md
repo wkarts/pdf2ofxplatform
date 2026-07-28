@@ -1,5 +1,33 @@
 # Changelog
 
+## [1.1.3] - 2026-07-28
+
+### Corrigido
+
+- eliminado o espelhamento simultâneo de manifestos multi-arquitetura, que
+  excedia o limite de requisições do GHCR e retornava `429 Too Many Requests`;
+- imagens-base agora são espelhadas somente para `linux/amd64`, arquitetura
+  efetivamente utilizada pelo build e pela VPS;
+- espelhamento passou a ser sequencial, idempotente e protegido por até seis
+  tentativas com espera exponencial;
+- imagens-base já existentes no GHCR são detectadas e não são republicadas;
+- publicação das imagens da aplicação passou a usar `max-parallel: 1`, reduzindo
+  rajadas de upload no registro;
+- o build valida explicitamente a presença de todas as imagens-base antes de
+  compilar as imagens da aplicação;
+- a preparação da release executa novamente a validação completa dos metadados;
+- GitHub Actions atualizadas para runtimes Node.js 24, removendo os avisos de
+  actions baseadas em Node.js 20.
+
+### Validações adicionadas
+
+- validação YAML de todos os workflows;
+- validação sintática de todos os scripts Shell de implantação;
+- bloqueio de versões obsoletas das actions utilizadas no projeto;
+- bloqueio do comando de espelhamento multi-arquitetura que causou a falha;
+- verificação estática dos três targets Docker antes da publicação;
+- validação final do catálogo completo de imagens-base no GHCR.
+
 ## [1.1.2] - 2026-07-28
 
 ### Corrigido
