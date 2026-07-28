@@ -34,6 +34,7 @@ services:
       args:
         PHP_BASE_IMAGE: ${PHP_BASE_IMAGE:-php:8.4-fpm-alpine}
         COMPOSER_BASE_IMAGE: ${COMPOSER_BASE_IMAGE:-composer:2.8}
+        REDIS_EXTENSION_VERSION: ${REDIS_EXTENSION_VERSION:-6.3.0}
     image: ${APP_IMAGE:-pdf2ofx-app:local}
     restart: unless-stopped
     env_file: [.env]

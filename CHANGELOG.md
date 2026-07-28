@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.5] - 2026-07-28
+
+### Corrigido
+
+- removida a dependência do endpoint REST do PECL durante o build da extensão Redis;
+- extensão PhpRedis compilada a partir de uma versão fixa do código-fonte, com retry no download;
+- gateway NGINX desacoplado do estágio PHP, evitando recompilação desnecessária do Laravel;
+- CI alterado de verificação estática para build real das três imagens;
+- validação do runtime confirma Redis, Artisan, NGINX e pacote Python;
+- release permanece bloqueada quando qualquer imagem não é publicada.
+
+### Implantação
+
+- adicionado pacote independente em `deploy/docker/`;
+- incluídos Compose de produção, modelo `.env`, instalador, update, rollback, backup, restore, status, logs e health check;
+- incluídos modelos para CloudPanel Reverse Proxy e systemd;
+- documentação de implantação reestruturada com procedimento completo.
+
 ## [1.1.4] - 2026-07-28
 
 ### Corrigido

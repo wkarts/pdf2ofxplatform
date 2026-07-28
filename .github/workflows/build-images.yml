@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão sem o prefixo v (ex.: 1.1.4)"
+        description: "Versão sem o prefixo v (ex.: 1.1.5)"
         required: true
         type: string
       ref:
@@ -106,13 +106,11 @@ jobs:
             build_args: |
               PHP_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-php:8.4-fpm-alpine
               COMPOSER_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-composer:2.8
-              NGINX_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-nginx:1.28-alpine
+              REDIS_EXTENSION_VERSION=6.3.0
           - image: pdf2ofx-gateway
             dockerfile: apps/web/docker/Dockerfile
             target: gateway
             build_args: |
-              PHP_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-php:8.4-fpm-alpine
-              COMPOSER_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-composer:2.8
               NGINX_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-nginx:1.28-alpine
           - image: pdf2ofx-converter
             dockerfile: services/converter/Dockerfile
@@ -158,6 +156,7 @@ jobs:
           target: ${{ matrix.target }}
           build-args: ${{ matrix.build_args }}
           platforms: linux/amd64
+          pull: true
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}

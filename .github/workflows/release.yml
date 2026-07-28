@@ -152,6 +152,19 @@ jobs:
             --output="dist/pdf2ofx-platform-${VERSION}.tar.gz" \
             HEAD
 
+          mkdir -p "dist/docker-package/pdf2ofx-docker-deployment-${VERSION}"
+          cp -a deploy/docker/. "dist/docker-package/pdf2ofx-docker-deployment-${VERSION}/"
+          printf '%s\n' "$VERSION" > "dist/docker-package/pdf2ofx-docker-deployment-${VERSION}/VERSION"
+
+          (
+            cd dist/docker-package
+            zip -qr "../pdf2ofx-docker-deployment-${VERSION}.zip" \
+              "pdf2ofx-docker-deployment-${VERSION}"
+            tar -czf "../pdf2ofx-docker-deployment-${VERSION}.tar.gz" \
+              "pdf2ofx-docker-deployment-${VERSION}"
+          )
+          rm -rf dist/docker-package
+
           cat > "dist/container-images-${VERSION}.txt" <<EOF
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}
@@ -163,6 +176,8 @@ jobs:
             sha256sum \
               "pdf2ofx-platform-${VERSION}.zip" \
               "pdf2ofx-platform-${VERSION}.tar.gz" \
+              "pdf2ofx-docker-deployment-${VERSION}.zip" \
+              "pdf2ofx-docker-deployment-${VERSION}.tar.gz" \
               "container-images-${VERSION}.txt" \
               > "SHA256SUMS-${VERSION}.txt"
           )
@@ -187,6 +202,8 @@ jobs:
           files: |
             dist/pdf2ofx-platform-${{ needs.prepare.outputs.version }}.zip
             dist/pdf2ofx-platform-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/pdf2ofx-docker-deployment-${{ needs.prepare.outputs.version }}.zip
+            dist/pdf2ofx-docker-deployment-${{ needs.prepare.outputs.version }}.tar.gz
             dist/container-images-${{ needs.prepare.outputs.version }}.txt
             dist/SHA256SUMS-${{ needs.prepare.outputs.version }}.txt
 
@@ -200,4 +217,5 @@ jobs:
             echo "- Imagem web: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}\`"
             echo "- Gateway: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}\`"
             echo "- Conversor: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-converter:${VERSION}\`"
+            echo "- Pacote Docker: \`pdf2ofx-docker-deployment-${VERSION}.zip\`"
           } >> "$GITHUB_STEP_SUMMARY"
