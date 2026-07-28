@@ -41,10 +41,13 @@ jobs:
       should_release: ${{ steps.release.outputs.should_release }}
     steps:
       - name: Obter código aprovado pelo CI
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
           fetch-depth: 0
+
+      - name: Validar consistência dos metadados
+        run: bash deploy/scripts/validate-version.sh
 
       - name: Validar e identificar release
         id: release
@@ -103,6 +106,8 @@ jobs:
     needs: prepare
     if: needs.prepare.outputs.should_release == 'true'
     uses: ./.github/workflows/mirror-base-images.yml
+    with:
+      force: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
     secrets: inherit
 
   build-images:
@@ -122,7 +127,7 @@ jobs:
     runs-on: ubuntu-latest
     steps:
       - name: Obter código compilado
-        uses: actions/checkout@v5
+        uses: actions/checkout@v6
         with:
           ref: ${{ needs.prepare.outputs.source_sha }}
           fetch-depth: 0
@@ -162,7 +167,7 @@ jobs:
           )
 
       - name: Publicar artefato do workflow
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: pdf2ofx-platform-${{ needs.prepare.outputs.version }}
           path: dist/*
@@ -170,7 +175,7 @@ jobs:
           retention-days: 30
 
       - name: Criar ou atualizar release
-        uses: softprops/action-gh-release@v2
+        uses: softprops/action-gh-release@v3
         with:
           tag_name: v${{ needs.prepare.outputs.version }}
           target_commitish: ${{ needs.prepare.outputs.source_sha }}

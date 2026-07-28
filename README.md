@@ -70,7 +70,7 @@ Depois que um push em `main` conclui o workflow **CI** com sucesso, o workflow
 
 1. lê e valida a versão do arquivo `VERSION`;
 2. verifica se a release correspondente já existe;
-3. espelha as imagens-base oficiais no GHCR;
+3. confirma as imagens-base no GHCR e espelha apenas as ausentes, de forma sequencial;
 4. compila e publica `pdf2ofx-app`, `pdf2ofx-gateway` e
    `pdf2ofx-converter`;
 5. cria a tag `vX.Y.Z` e a GitHub Release;
@@ -154,7 +154,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.2`
+`1.1.3`
 
 ## Licença
 

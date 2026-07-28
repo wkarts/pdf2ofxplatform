@@ -16,7 +16,7 @@ workflow **Build, publish and release** é iniciado automaticamente e:
 
 1. valida a versão declarada em `VERSION`;
 2. evita republicar uma release já existente;
-3. espelha as imagens-base oficiais no GHCR;
+3. confirma as imagens-base no GHCR e espelha apenas as ausentes, de forma sequencial;
 4. compila as imagens `pdf2ofx-app`, `pdf2ofx-gateway` e
    `pdf2ofx-converter`;
 5. publica as tags `X.Y.Z`, `X.Y`, `sha-*` e `latest`;
@@ -57,7 +57,7 @@ Gere uma chave Laravel sem instalar Composer no host:
 
 ```bash
 docker run --rm \
-  ghcr.io/wkarts/pdf2ofx-app:1.1.2 \
+  ghcr.io/wkarts/pdf2ofx-app:1.1.3 \
   php artisan key:generate --show
 ```
 
@@ -104,5 +104,5 @@ pelo worker e os artefatos temporários expiram pelo TTL.
 ## Rollback
 
 ```bash
-./deploy/scripts/rollback.sh 1.1.2
+./deploy/scripts/rollback.sh 1.1.3
 ```

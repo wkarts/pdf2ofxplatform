@@ -32,4 +32,14 @@ assert_contains .env.production.example "pdf2ofx-converter:$VERSION"
 assert_contains README.md "\`$VERSION\`"
 assert_contains CHANGELOG.md "## [$VERSION]"
 
+if [[ ! -f "docs/VALIDATION-${VERSION}.md" ]]; then
+    echo "ERRO: relatório docs/VALIDATION-${VERSION}.md não encontrado." >&2
+    exit 1
+fi
+
+if [[ ! -f "docs/PULL_REQUEST-${VERSION}.md" ]]; then
+    echo "ERRO: documentação docs/PULL_REQUEST-${VERSION}.md não encontrada." >&2
+    exit 1
+fi
+
 echo "Metadados da versão $VERSION validados."
