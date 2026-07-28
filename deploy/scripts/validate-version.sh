@@ -65,6 +65,10 @@ assert_not_contains apps/web/docker/Dockerfile "COPY --from=app /var/www/html/pu
 assert_contains .github/workflows/ci.yml 'bash deploy/scripts/validate-gateway-image.sh "${{ matrix.image }}:${GITHUB_SHA}"'
 assert_contains deploy/scripts/validate-gateway-image.sh '--add-host app:127.0.0.1'
 assert_contains deploy/scripts/validate-gateway-image.sh 'http://127.0.0.1:8080/health'
+assert_contains deploy/dockge/tests/test-install-vps.sh 'run_as_root env'
+assert_contains deploy/dockge/tests/test-install-vps.sh '"PATH=$TEMP_DIR/bin:$PATH"'
+assert_contains deploy/dockge/tests/test-install-vps.sh 'sem acesso ao daemon real'
+assert_contains .github/workflows/ci.yml 'Preparar ambiente de testes Laravel'
 
 for required in \
     deploy/docker/compose.yaml \

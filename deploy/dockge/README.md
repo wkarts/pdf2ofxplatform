@@ -35,7 +35,7 @@ VPS e execute:
 cd deploy/dockge
 sudo -E bash install-vps.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.7 \
+  --version 1.1.8 \
   --namespace wkarts
 ```
 
@@ -46,7 +46,7 @@ export GHCR_USER=wkarts
 export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES'
 sudo -E bash install-vps.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.7 \
+  --version 1.1.8 \
   --namespace wkarts
 ```
 

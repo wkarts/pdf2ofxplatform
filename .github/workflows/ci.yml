@@ -32,6 +32,8 @@ jobs:
           extensions: mbstring, intl, pdo_sqlite, bcmath
           coverage: none
           tools: composer:v2
+      - name: Preparar ambiente de testes Laravel
+        run: cp .env.example .env
       - name: Validar Composer
         run: composer validate --strict --no-check-lock
       - name: Instalar dependências PHP

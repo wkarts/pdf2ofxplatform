@@ -1,5 +1,22 @@
 # Changelog
 
+## [1.1.8] - 2026-07-28
+
+### Corrigido
+
+- teste do instalador Dockge passa a preservar explicitamente o Docker simulado após `sudo`;
+- removida a possibilidade de o CI baixar e iniciar o Dockge real durante a validação;
+- validações de arquivos protegidos são executadas com o mesmo contexto root da instalação;
+- limpeza do diretório temporário passou a funcionar mesmo quando os arquivos são criados como root;
+- ambiente Laravel de testes passa a criar `.env` antes do Composer, eliminando avisos de arquivo ausente.
+
+### Validado
+
+- instalação Dockge simulada sem acesso ao daemon Docker real;
+- permissões `0600` dos arquivos `.env`;
+- comandos Compose esperados registrados exclusivamente pelo mock;
+- scripts Shell, metadados, parsers e pacotes de implantação.
+
 ## [1.1.7] - 2026-07-28
 
 ### Adicionado
