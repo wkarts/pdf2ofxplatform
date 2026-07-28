@@ -1,5 +1,23 @@
 # Changelog
 
+## [1.1.4] - 2026-07-28
+
+### Corrigido
+
+- falha `Permission denied`/exit code `126` no teste de espelhamento;
+- scripts de implantação deixam de depender do bit executável Unix;
+- chamadas internas e exemplos passam a executar scripts explicitamente com `bash`;
+- workflow de imagens-base recebe e usa o commit exato aprovado pelo CI;
+- release automática volta a prosseguir após o merge validado em `main`.
+
+### Validado
+
+- teste de espelhamento com o script alvo propositalmente sem permissão de execução;
+- sintaxe Shell e YAML;
+- metadados da versão;
+- testes Laravel e Python;
+- Docker Compose e Dockerfiles.
+
 ## [1.1.3] - 2026-07-28
 
 ### Corrigido

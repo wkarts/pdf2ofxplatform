@@ -107,6 +107,7 @@ jobs:
     if: needs.prepare.outputs.should_release == 'true'
     uses: ./.github/workflows/mirror-base-images.yml
     with:
+      ref: ${{ needs.prepare.outputs.source_sha }}
       force: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
     secrets: inherit
 

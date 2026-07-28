@@ -61,7 +61,7 @@ shell-converter:
 	$(COMPOSE) exec converter-api sh
 
 deploy:
-	./deploy/scripts/deploy.sh
+	bash deploy/scripts/deploy.sh
 
 clean:
 	$(COMPOSE) down -v --remove-orphans

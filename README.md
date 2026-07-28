@@ -111,7 +111,7 @@ Depois:
 ```bash
 cp .env.production.example .env
 # Preencha domínio, APP_KEY, senhas, chave interna e imagens GHCR.
-./deploy/scripts/deploy.sh
+bash deploy/scripts/deploy.sh
 ```
 
 Somente a porta do gateway é vinculada ao loopback da VPS. Redis, PostgreSQL e
@@ -154,7 +154,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.3`
+`1.1.4`
 
 ## Licença
 

@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão sem o prefixo v (ex.: 1.1.3)"
+        description: "Versão sem o prefixo v (ex.: 1.1.4)"
         required: true
 
 permissions:
@@ -60,7 +60,6 @@ jobs:
             cd /opt/pdf2ofx
             git fetch --tags --force origin
             git checkout --force "v${{ inputs.version }}"
-            chmod +x deploy/scripts/*.sh
             sed -i -E \
               "s#^(APP_IMAGE=).*$#\1ghcr.io/${{ github.repository_owner }}/pdf2ofx-app:${{ inputs.version }}#" \
               .env
@@ -70,4 +69,4 @@ jobs:
             sed -i -E \
               "s#^(CONVERTER_IMAGE=).*$#\1ghcr.io/${{ github.repository_owner }}/pdf2ofx-converter:${{ inputs.version }}#" \
               .env
-            ./deploy/scripts/deploy.sh
+            bash deploy/scripts/deploy.sh

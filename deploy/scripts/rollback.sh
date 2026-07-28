@@ -17,4 +17,4 @@ export CONVERTER_IMAGE="ghcr.io/${GHCR_NAMESPACE}/pdf2ofx-converter:${VERSION}"
 
 docker compose --env-file .env -f compose.yaml -f compose.production.yaml pull
 docker compose --env-file .env -f compose.yaml -f compose.production.yaml up -d --remove-orphans
-./deploy/scripts/healthcheck.sh
+bash deploy/scripts/healthcheck.sh

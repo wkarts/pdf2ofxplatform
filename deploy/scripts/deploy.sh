@@ -31,6 +31,6 @@ echo "Otimizando Laravel..."
 "${COMPOSE[@]}" exec -T app php artisan queue:restart || true
 
 echo "Validando saúde..."
-"$(dirname "$0")/healthcheck.sh"
+bash "$(dirname "$0")/healthcheck.sh"
 
 echo "Deploy concluído."
