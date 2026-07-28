@@ -1,0 +1,54 @@
+name: Deploy production
+
+on:
+  workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão sem o prefixo v (ex.: 1.1.1)"
+        required: true
+
+permissions:
+  contents: read
+  packages: read
+
+concurrency:
+  group: production
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: production
+    steps:
+      - name: Validar versão
+        env:
+          VERSION: ${{ inputs.version }}
+        run: |
+          [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
+
+      - name: Deploy por SSH
+        uses: appleboy/ssh-action@v1.2.2
+        with:
+          host: ${{ secrets.PRODUCTION_HOST }}
+          username: ${{ secrets.PRODUCTION_USER }}
+          key: ${{ secrets.PRODUCTION_SSH_KEY }}
+          port: ${{ secrets.PRODUCTION_SSH_PORT || 22 }}
+          script_stop: true
+          script: |
+            set -Eeuo pipefail
+            echo "${{ secrets.GHCR_TOKEN }}" | docker login ghcr.io \
+              -u "${{ secrets.GHCR_USER }}" --password-stdin
+            cd /opt/pdf2ofx
+            git fetch --tags --force origin
+            git checkout --force "v${{ inputs.version }}"
+            chmod +x deploy/scripts/*.sh
+            sed -i -E \
+              "s#^(APP_IMAGE=).*$#\1ghcr.io/${{ github.repository_owner }}/pdf2ofx-app:${{ inputs.version }}#" \
+              .env
+            sed -i -E \
+              "s#^(GATEWAY_IMAGE=).*$#\1ghcr.io/${{ github.repository_owner }}/pdf2ofx-gateway:${{ inputs.version }}#" \
+              .env
+            sed -i -E \
+              "s#^(CONVERTER_IMAGE=).*$#\1ghcr.io/${{ github.repository_owner }}/pdf2ofx-converter:${{ inputs.version }}#" \
+              .env
+            ./deploy/scripts/deploy.sh

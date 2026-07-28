@@ -1,0 +1,23 @@
+name: Erro
+description: Relatar falha funcional ou de conversão
+title: "[BUG] "
+labels: ["bug"]
+body:
+  - type: textarea
+    id: description
+    attributes:
+      label: Descrição
+    validations:
+      required: true
+  - type: input
+    id: bank
+    attributes:
+      label: Banco e layout
+  - type: textarea
+    id: expected
+    attributes:
+      label: Resultado esperado
+  - type: textarea
+    id: logs
+    attributes:
+      label: Logs anonimizados
