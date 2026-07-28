@@ -7,15 +7,23 @@ A API FastAPI é acessível somente pela rede interna do Compose. Todas as rotas
 X-Internal-API-Key: <PDF2OFX_API_KEY>
 ```
 
+## Listar bancos
+
+`GET /v1/banks`
+
+Retorna as chaves, nomes e códigos dos bancos cadastrados e informa o fallback
+`generic`.
+
 ## Criar conversão
 
 `POST /v1/conversions`, `multipart/form-data`:
 
 - `file`: PDF;
-- `bank_hint`: `auto`, `itau`, `bnb`, `santander` ou `generic`;
+- `bank_hint`: `auto`, uma chave retornada por `/v1/banks` ou `generic`;
 - `output_format`: `ofx_102`.
 
-Retorna HTTP 202, `job_id`, status e TTL.
+Aliases aceitos incluem `nubanck`, `mercadopago`, `banco_brasil`, `cef` e
+`nordeste`. Retorna HTTP 202, `job_id`, status e TTL.
 
 ## Consultar conversão
 
@@ -30,8 +38,8 @@ Estados possíveis:
 - `failed`.
 
 `review_required` significa que o OFX foi gerado, mas existem divergências,
-duplicidades ou lançamentos de baixa confiança. O arquivo permanece disponível
-para revisão e download.
+duplicidades, parser universal ou lançamentos de baixa confiança. O arquivo
+permanece disponível para revisão e download.
 
 ## Corrigir transação
 

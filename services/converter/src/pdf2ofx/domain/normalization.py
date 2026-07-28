@@ -6,8 +6,11 @@ import unicodedata
 from datetime import date, datetime
 from decimal import Decimal, InvalidOperation
 
-MONEY_RE = re.compile(r"[-+]?\s*(?:R\$\s*)?\d{1,3}(?:\.\d{3})*,\d{2}[+-]?")
-DATE_RE = re.compile(r"\b(\d{1,2})/(\d{1,2})(?:/(\d{2,4}))?\b")
+MONEY_RE = re.compile(
+    r"(?:\(\s*)?[-+]?\s*(?:R\$\s*)?\d{1,3}(?:\.\d{3})*,\d{2}\s*[+-]?(?:\s*\))?"
+)
+DATE_RE = re.compile(r"\b(\d{1,2})[/.\-](\d{1,2})(?:[/.\-](\d{2,4}))?\b")
+ISO_DATE_RE = re.compile(r"\b(20\d{2})-(\d{1,2})-(\d{1,2})\b")
 
 
 def clean_text(value: str) -> str:
@@ -21,10 +24,12 @@ def normalize_ascii(value: str) -> str:
 
 def parse_br_money(value: str) -> Decimal:
     raw = clean_text(value).replace("R$", "").replace(" ", "")
+    parenthesized = raw.startswith("(") and raw.endswith(")")
+    raw = raw.strip("()")
     trailing_sign = raw[-1:] if raw[-1:] in {"+", "-"} else ""
     if trailing_sign:
         raw = raw[:-1]
-    negative = raw.startswith("-") or trailing_sign == "-"
+    negative = raw.startswith("-") or trailing_sign == "-" or parenthesized
     raw = raw.lstrip("+-").replace(".", "").replace(",", ".")
     try:
         amount = Decimal(raw)
@@ -34,6 +39,14 @@ def parse_br_money(value: str) -> Decimal:
 
 
 def parse_date(value: str, default_year: int, default_month: int | None = None) -> date:
+    iso_match = ISO_DATE_RE.search(value)
+    if iso_match:
+        return date(
+            int(iso_match.group(1)),
+            int(iso_match.group(2)),
+            int(iso_match.group(3)),
+        )
+
     match = DATE_RE.search(value)
     if not match:
         raise ValueError(f"Data inválida: {value}")
@@ -88,14 +101,17 @@ def infer_reference_year(text: str) -> int:
     normalized = normalize_ascii(text)
     contextual = re.search(
         r"(?:JANEIRO|FEVEREIRO|MARCO|ABRIL|MAIO|JUNHO|JULHO|AGOSTO|"
-        r"SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\s*/\s*(20\d{2})",
+        r"SETEMBRO|OUTUBRO|NOVEMBRO|DEZEMBRO)\s*/?\s*(20\d{2})",
         normalized,
     )
     if contextual:
         return int(contextual.group(1))
-    full_date = re.search(r"\b\d{1,2}/\d{1,2}/(20\d{2})\b", text)
+    full_date = re.search(r"\b\d{1,2}[/.\-]\d{1,2}[/.\-](20\d{2})\b", text)
     if full_date:
         return int(full_date.group(1))
+    iso_date = ISO_DATE_RE.search(text)
+    if iso_date:
+        return int(iso_date.group(1))
     matches = re.findall(r"\b20\d{2}\b", text)
     if matches:
         counts = {value: matches.count(value) for value in set(matches)}
@@ -106,9 +122,18 @@ def infer_reference_year(text: str) -> int:
 def infer_reference_month(text: str) -> int | None:
     ascii_text = normalize_ascii(text)
     months = {
-        "JANEIRO": 1, "FEVEREIRO": 2, "MARCO": 3, "ABRIL": 4,
-        "MAIO": 5, "JUNHO": 6, "JULHO": 7, "AGOSTO": 8,
-        "SETEMBRO": 9, "OUTUBRO": 10, "NOVEMBRO": 11, "DEZEMBRO": 12,
+        "JANEIRO": 1,
+        "FEVEREIRO": 2,
+        "MARCO": 3,
+        "ABRIL": 4,
+        "MAIO": 5,
+        "JUNHO": 6,
+        "JULHO": 7,
+        "AGOSTO": 8,
+        "SETEMBRO": 9,
+        "OUTUBRO": 10,
+        "NOVEMBRO": 11,
+        "DEZEMBRO": 12,
     }
     for name, number in months.items():
         if name in ascii_text:

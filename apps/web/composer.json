@@ -3,19 +3,24 @@
   "name": "wwsoftwares/pdf2ofx-web",
   "type": "project",
   "description": "Interface web e orquestração da plataforma PDF2OFX.",
-  "keywords": ["laravel", "pdf", "ofx", "bank-statement"],
+  "keywords": [
+    "laravel",
+    "pdf",
+    "ofx",
+    "bank-statement"
+  ],
   "license": "proprietary",
   "require": {
     "php": "^8.3",
     "guzzlehttp/guzzle": "^7.9",
-    "laravel/framework": "^13.0",
+    "laravel/framework": "^12.0",
     "laravel/tinker": "^2.10"
   },
   "require-dev": {
     "fakerphp/faker": "^1.24",
     "mockery/mockery": "^1.6",
-    "nunomaduro/collision": "^9.0",
-    "phpunit/phpunit": "^12.0"
+    "nunomaduro/collision": "^8.1",
+    "phpunit/phpunit": "^11.5.3"
   },
   "autoload": {
     "psr-4": {
@@ -45,7 +50,11 @@
       "@php artisan test"
     ]
   },
-  "extra": {"laravel": {"dont-discover": []}},
+  "extra": {
+    "laravel": {
+      "dont-discover": []
+    }
+  },
   "config": {
     "optimize-autoloader": true,
     "preferred-install": "dist",

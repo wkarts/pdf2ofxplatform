@@ -82,17 +82,26 @@
                     <option value="auto">
                         Detectar automaticamente
                     </option>
-                    <option value="itau">
-                        Itaú
-                    </option>
-                    <option value="bnb">
-                        Banco do Nordeste
-                    </option>
-                    <option value="santander">
-                        Santander
-                    </option>
+                    <optgroup label="Bancos principais">
+                        @foreach (config('pdf2ofx.banks', []) as $key => $bank)
+                            @if ($bank['featured'])
+                                <option value="{{ $key }}">
+                                    {{ $bank['name'] }} · {{ $bank['code'] }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </optgroup>
+                    <optgroup label="Outros bancos cadastrados">
+                        @foreach (config('pdf2ofx.banks', []) as $key => $bank)
+                            @if (! $bank['featured'])
+                                <option value="{{ $key }}">
+                                    {{ $bank['name'] }} · {{ $bank['code'] }}
+                                </option>
+                            @endif
+                        @endforeach
+                    </optgroup>
                     <option value="generic">
-                        Layout genérico
+                        Outro banco · parser universal
                     </option>
                 </select>
             </label>
@@ -122,8 +131,8 @@
     <article class="feature">
         <strong>Detecção bancária</strong>
         <p>
-            Seleciona automaticamente o parser
-            adequado ao layout.
+            Reconhece bancos brasileiros cadastrados e
+            utiliza parser universal para outros layouts.
         </p>
     </article>
 

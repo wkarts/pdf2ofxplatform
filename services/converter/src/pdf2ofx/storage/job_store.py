@@ -4,10 +4,11 @@ import json
 import os
 import shutil
 import time
+from collections.abc import Iterator
 from contextlib import contextmanager
 from datetime import UTC, datetime, timedelta
 from pathlib import Path
-from typing import Any, Iterator
+from typing import Any
 from uuid import UUID
 
 
@@ -87,7 +88,7 @@ class JobStore:
                 descriptor = os.open(lock_path, os.O_CREAT | os.O_EXCL | os.O_WRONLY, 0o600)
             except FileExistsError:
                 if time.monotonic() - started > timeout:
-                    raise TimeoutError(f"Timeout ao bloquear o job {job_id}.")
+                    raise TimeoutError(f"Timeout ao bloquear o job {job_id}.") from None
                 time.sleep(0.05)
         try:
             os.write(descriptor, str(os.getpid()).encode())

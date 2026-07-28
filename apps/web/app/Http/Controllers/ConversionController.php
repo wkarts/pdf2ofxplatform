@@ -9,6 +9,7 @@ use Illuminate\Http\JsonResponse;
 use Illuminate\Http\RedirectResponse;
 use Illuminate\Http\Request;
 use Illuminate\Support\Str;
+use Illuminate\Validation\Rule;
 use Illuminate\View\View;
 use RuntimeException;
 use Symfony\Component\HttpFoundation\StreamedResponse;
@@ -44,7 +45,11 @@ class ConversionController extends Controller
             'bank_hint' => [
                 'nullable',
                 'string',
-                'in:auto,itau,bnb,santander,generic',
+                Rule::in([
+                    'auto',
+                    'generic',
+                    ...array_keys((array) config('pdf2ofx.banks', [])),
+                ]),
             ],
             'output_format' => [
                 'required',

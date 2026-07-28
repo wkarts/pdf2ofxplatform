@@ -6,7 +6,7 @@ conciliação e parsers bancários extensíveis.
 
 ## Stack
 
-- Laravel 13 / PHP 8.4;
+- Laravel 12 / PHP 8.4;
 - Blade + JavaScript, sem dependência de build frontend;
 - Python 3.13, FastAPI e Celery;
 - Redis 8 e PostgreSQL 17;
@@ -15,16 +15,26 @@ conciliação e parsers bancários extensíveis.
 - GitHub Container Registry (GHCR);
 - CloudPanel como Reverse Proxy e terminador TLS.
 
-## Bancos inicialmente tratados
+## Cobertura bancária
 
-- Itaú (341): parser orientado por OCR e linhas posicionadas;
-- Banco do Nordeste (004): parser textual específico;
-- Santander (033): parser por colunas físicas e descrições continuadas;
-- parser genérico para layouts simples.
+A plataforma possui três níveis de processamento:
 
-O Itaú pode exigir revisão manual quando a qualidade do PDF/OCR não permitir
-reconciliação automática. A interface destaca lançamentos de baixa confiança e
-mantém o OFX editável antes do download.
+- **parsers calibrados:** Itaú (341), Banco do Nordeste (004) e Santander
+  (033), validados com os PDFs reais fornecidos;
+- **perfis bancários dedicados:** Banco do Brasil, Inter, Caixa, Bradesco,
+  Next, Nubank, Mercado Pago, Sicoob, Sicredi, C6, PagBank, Stone, Safra,
+  Banrisul, BTG, Original, BV, PicPay, XP, PAN, BS2, Banco da Amazônia,
+  BRB, Banpará, Banestes, BMG, Daycoval, Mercantil, Unicred e Cresol;
+- **parser bancário universal:** fallback para outros bancos e novos layouts,
+  sempre sinalizando revisão quando não houver conciliação completa.
+
+O catálogo é extensível e não vincula a API a um layout específico. Mudanças no
+PDF de uma instituição podem ser tratadas por um parser calibrado sem alterar o
+Laravel, o contrato HTTP ou o gerador OFX.
+
+O Itaú e qualquer documento processado por OCR podem exigir revisão manual
+quando a qualidade da imagem não permitir reconciliação automática. A interface
+destaca lançamentos de baixa confiança e mantém o OFX editável antes do download.
 
 ## Funcionalidades
 
@@ -134,7 +144,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.0.0`
+`1.1.0`
 
 ## Licença
 

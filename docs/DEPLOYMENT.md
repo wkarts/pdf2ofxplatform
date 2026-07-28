@@ -14,7 +14,7 @@
 Execute no GitHub, nesta ordem:
 
 1. **Mirror base images to GHCR**;
-2. crie a tag `v1.0.0` ou execute **Build and publish images**;
+2. crie a tag `v1.1.0` ou execute **Build and publish images**;
 3. confirme a existência das imagens:
    - `pdf2ofx-app`;
    - `pdf2ofx-gateway`;
@@ -52,7 +52,7 @@ Gere uma chave Laravel sem instalar Composer no host:
 
 ```bash
 docker run --rm \
-  ghcr.io/wkarts/pdf2ofx-app:1.0.0 \
+  ghcr.io/wkarts/pdf2ofx-app:1.1.0 \
   php artisan key:generate --show
 ```
 
@@ -99,5 +99,5 @@ pelo worker e os artefatos temporários expiram pelo TTL.
 ## Rollback
 
 ```bash
-./deploy/scripts/rollback.sh 1.0.0
+./deploy/scripts/rollback.sh 1.1.0
 ```

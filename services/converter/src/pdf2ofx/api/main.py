@@ -19,12 +19,14 @@ from pdf2ofx.application.processor import ConversionProcessor
 from pdf2ofx.application.status import result_status
 from pdf2ofx.domain.models import Statement
 from pdf2ofx.domain.normalization import classify_transaction, create_fitid
+from pdf2ofx.parsers.registry import ParserRegistry
 from pdf2ofx.settings import get_settings
 from pdf2ofx.storage.job_store import JobNotFoundError, JobStore
 from pdf2ofx.workers.tasks import process_conversion
 
 settings = get_settings()
 store = JobStore(settings.data_dir, settings.job_ttl_hours)
+registry = ParserRegistry()
 
 app = FastAPI(
     title="PDF2OFX Converter API",
@@ -47,6 +49,20 @@ if settings.cors_origins:
 @app.get("/health", response_model=HealthResponse)
 def health() -> HealthResponse:
     return HealthResponse(version=__version__)
+
+
+@app.get(
+    "/v1/banks",
+    dependencies=[Depends(require_api_key)],
+)
+def supported_banks() -> dict[str, object]:
+    return {
+        "banks": registry.catalog(),
+        "fallback": {
+            "key": "generic",
+            "name": "Layout bancário universal",
+        },
+    }
 
 
 def _read_job(job_id: str) -> dict:
@@ -74,7 +90,7 @@ async def create_conversion(
     bank_hint: Annotated[str, Form()] = "auto",
     output_format: Annotated[str, Form()] = "ofx_102",
 ) -> JobResponse:
-    if bank_hint not in {"auto", "itau", "bnb", "santander", "generic"}:
+    if bank_hint not in registry.supported_keys:
         raise HTTPException(status_code=422, detail="Banco/parser inválido.")
     if output_format != "ofx_102":
         raise HTTPException(status_code=422, detail="Formato de saída não suportado.")

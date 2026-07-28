@@ -15,16 +15,20 @@ jobs:
       run:
         working-directory: apps/web
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - uses: shivammathur/setup-php@v2
         with:
           php-version: "8.4"
           extensions: mbstring, intl, pdo_sqlite, bcmath
           coverage: none
-      - uses: ramsey/composer-install@v3
-        with:
-          working-directory: apps/web
-      - name: Testes
+          tools: composer:v2
+      - name: Validar Composer
+        run: composer validate --strict --no-check-lock
+      - name: Instalar dependências PHP
+        run: composer install --no-interaction --no-progress --prefer-dist
+      - name: Validar sintaxe PHP
+        run: find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l
+      - name: Testes Laravel
         run: php artisan test
 
   converter:
@@ -37,8 +41,8 @@ jobs:
       PDF2OFX_DATA_DIR: /tmp/pdf2ofx-tests
       PDF2OFX_OCR_ENABLED: "false"
     steps:
-      - uses: actions/checkout@v4
-      - uses: actions/setup-python@v5
+      - uses: actions/checkout@v5
+      - uses: actions/setup-python@v6
         with:
           python-version: "3.13"
           cache: pip
@@ -51,6 +55,6 @@ jobs:
   compose:
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v5
       - run: cp .env.example .env
       - run: docker compose --env-file .env config >/dev/null

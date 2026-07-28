@@ -1,8 +1,7 @@
 from __future__ import annotations
 
 import json
-from pathlib import Path
-from typing import Callable
+from collections.abc import Callable
 
 from pdf2ofx.domain.models import Statement
 from pdf2ofx.exporters.ofx_102 import write_ofx

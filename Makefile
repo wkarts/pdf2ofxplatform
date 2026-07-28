@@ -51,7 +51,8 @@ test:
 
 lint:
 	$(COMPOSE) run --rm app sh -lc "find app bootstrap config database routes tests -name '*.php' -print0 | xargs -0 -n1 php -l"
-	$(COMPOSE) run --rm converter-api ruff check src tests
+	docker build --target test -f services/converter/Dockerfile -t pdf2ofx-converter:lint .
+	docker run --rm --entrypoint ruff pdf2ofx-converter:lint check src tests
 
 shell-web:
 	$(COMPOSE) exec app sh
