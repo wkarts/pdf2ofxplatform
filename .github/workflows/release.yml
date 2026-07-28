@@ -1,28 +1,197 @@
-name: GitHub Release
+name: Build, publish and release
 
 on:
-  push:
-    tags: ["v*.*.*"]
+  workflow_run:
+    workflows: ["CI"]
+    types: [completed]
+  workflow_dispatch:
+    inputs:
+      ref:
+        description: Commit, tag ou branch que será publicado
+        required: true
+        default: main
+        type: string
+      force:
+        description: Recompilar e atualizar uma release já existente
+        required: true
+        default: false
+        type: boolean
 
 permissions:
+  actions: read
   contents: write
+  packages: write
+
+concurrency:
+  group: release-${{ github.repository }}
+  cancel-in-progress: false
 
 jobs:
+  prepare:
+    name: Preparar release
+    if: >-
+      github.event_name == 'workflow_dispatch' ||
+      (github.event.workflow_run.conclusion == 'success' &&
+       github.event.workflow_run.head_branch == 'main' &&
+       github.event.workflow_run.event == 'push')
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.release.outputs.version }}
+      source_sha: ${{ steps.release.outputs.source_sha }}
+      should_release: ${{ steps.release.outputs.should_release }}
+    steps:
+      - name: Obter código aprovado pelo CI
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || inputs.ref }}
+          fetch-depth: 0
+
+      - name: Validar e identificar release
+        id: release
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          FORCE_RELEASE: ${{ github.event_name == 'workflow_dispatch' && inputs.force || false }}
+        run: |
+          set -Eeuo pipefail
+
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+          if [[ ! "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Conteúdo inválido no arquivo VERSION: $VERSION" >&2
+            exit 1
+          fi
+
+          SOURCE_SHA="$(git rev-parse HEAD)"
+          SHOULD_RELEASE=true
+          TAG_NAME="v${VERSION}"
+          TAG_SHA=""
+
+          git fetch --force --tags origin
+          if git rev-parse --verify --quiet "refs/tags/${TAG_NAME}^{commit}" >/dev/null; then
+            TAG_SHA="$(git rev-list -n 1 "$TAG_NAME")"
+          fi
+
+          if gh release view "$TAG_NAME" --repo "$GITHUB_REPOSITORY" >/dev/null 2>&1; then
+            if [[ "$FORCE_RELEASE" != "true" ]]; then
+              SHOULD_RELEASE=false
+              echo "A release ${TAG_NAME} já existe. Nada será republicado."
+            elif [[ -n "$TAG_SHA" && "$TAG_SHA" != "$SOURCE_SHA" ]]; then
+              echo "A tag ${TAG_NAME} aponta para $TAG_SHA, mas o ref informado aponta para $SOURCE_SHA." >&2
+              echo "Não é permitido mover uma versão publicada. Atualize o arquivo VERSION." >&2
+              exit 1
+            else
+              echo "A release ${TAG_NAME} será recompilada por solicitação manual."
+            fi
+          elif [[ -n "$TAG_SHA" && "$TAG_SHA" != "$SOURCE_SHA" ]]; then
+            echo "A tag ${TAG_NAME} já existe em outro commit ($TAG_SHA)." >&2
+            echo "Atualize o arquivo VERSION antes de publicar." >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$SOURCE_SHA" >> "$GITHUB_OUTPUT"
+          echo "should_release=$SHOULD_RELEASE" >> "$GITHUB_OUTPUT"
+
+          {
+            echo "### Preparação da release"
+            echo "- Versão: \`$VERSION\`"
+            echo "- Commit: \`$SOURCE_SHA\`"
+            echo "- Publicar: \`$SHOULD_RELEASE\`"
+          } >> "$GITHUB_STEP_SUMMARY"
+
+  mirror-base-images:
+    name: Preparar imagens-base no GHCR
+    needs: prepare
+    if: needs.prepare.outputs.should_release == 'true'
+    uses: ./.github/workflows/mirror-base-images.yml
+    secrets: inherit
+
+  build-images:
+    name: Compilar imagens da aplicação
+    needs: [prepare, mirror-base-images]
+    if: needs.prepare.outputs.should_release == 'true'
+    uses: ./.github/workflows/build-images.yml
+    with:
+      version: ${{ needs.prepare.outputs.version }}
+      ref: ${{ needs.prepare.outputs.source_sha }}
+    secrets: inherit
+
   release:
+    name: Publicar GitHub Release
+    needs: [prepare, build-images]
+    if: needs.prepare.outputs.should_release == 'true'
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
+      - name: Obter código compilado
+        uses: actions/checkout@v5
         with:
+          ref: ${{ needs.prepare.outputs.source_sha }}
           fetch-depth: 0
-      - name: Gerar pacote de código
+
+      - name: Gerar pacotes e checksums
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
         run: |
-          VERSION="${GITHUB_REF_NAME#v}"
-          git archive --format=zip --prefix="pdf2ofx-${VERSION}/" \
-            --output="pdf2ofx-${VERSION}.zip" HEAD
-          sha256sum "pdf2ofx-${VERSION}.zip" > "pdf2ofx-${VERSION}.zip.sha256"
-      - uses: softprops/action-gh-release@v2
+          set -Eeuo pipefail
+          mkdir -p dist
+
+          git archive \
+            --format=zip \
+            --prefix="pdf2ofx-platform-${VERSION}/" \
+            --output="dist/pdf2ofx-platform-${VERSION}.zip" \
+            HEAD
+
+          git archive \
+            --format=tar.gz \
+            --prefix="pdf2ofx-platform-${VERSION}/" \
+            --output="dist/pdf2ofx-platform-${VERSION}.tar.gz" \
+            HEAD
+
+          cat > "dist/container-images-${VERSION}.txt" <<EOF
+          ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}
+          ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}
+          ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-converter:${VERSION}
+          EOF
+
+          (
+            cd dist
+            sha256sum \
+              "pdf2ofx-platform-${VERSION}.zip" \
+              "pdf2ofx-platform-${VERSION}.tar.gz" \
+              "container-images-${VERSION}.txt" \
+              > "SHA256SUMS-${VERSION}.txt"
+          )
+
+      - name: Publicar artefato do workflow
+        uses: actions/upload-artifact@v4
         with:
+          name: pdf2ofx-platform-${{ needs.prepare.outputs.version }}
+          path: dist/*
+          if-no-files-found: error
+          retention-days: 30
+
+      - name: Criar ou atualizar release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: v${{ needs.prepare.outputs.version }}
+          target_commitish: ${{ needs.prepare.outputs.source_sha }}
+          name: PDF2OFX Platform v${{ needs.prepare.outputs.version }}
           generate_release_notes: true
+          make_latest: true
+          fail_on_unmatched_files: true
           files: |
-            pdf2ofx-*.zip
-            pdf2ofx-*.sha256
+            dist/pdf2ofx-platform-${{ needs.prepare.outputs.version }}.zip
+            dist/pdf2ofx-platform-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/container-images-${{ needs.prepare.outputs.version }}.txt
+            dist/SHA256SUMS-${{ needs.prepare.outputs.version }}.txt
+
+      - name: Resumo da publicação
+        env:
+          VERSION: ${{ needs.prepare.outputs.version }}
+        run: |
+          {
+            echo "### Release publicada"
+            echo "- Tag: \`v${VERSION}\`"
+            echo "- Imagem web: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}\`"
+            echo "- Gateway: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}\`"
+            echo "- Conversor: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-converter:${VERSION}\`"
+          } >> "$GITHUB_STEP_SUMMARY"
