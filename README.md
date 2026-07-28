@@ -63,22 +63,12 @@ compose.yaml              ambiente completo
 compose.production.yaml   sobreposição para imagens publicadas
 ```
 
-## Build e release automáticos
+## Primeira preparação no GitHub
 
-Depois que um push em `main` conclui o workflow **CI** com sucesso, o workflow
-**Build, publish and release** executa automaticamente o fluxo completo:
-
-1. lê e valida a versão do arquivo `VERSION`;
-2. verifica se a release correspondente já existe;
-3. espelha as imagens-base oficiais no GHCR;
-4. compila e publica `pdf2ofx-app`, `pdf2ofx-gateway` e
-   `pdf2ofx-converter`;
-5. cria a tag `vX.Y.Z` e a GitHub Release;
-6. anexa ZIP, TAR.GZ, lista de imagens e checksums SHA-256 à release e ao workflow.
-
-Para gerar uma nova release, atualize o arquivo `VERSION` e os metadados do
-projeto antes do merge. O workflow também pode ser executado manualmente, com a
-opção de recompilar uma versão já existente.
+1. Crie o repositório privado na conta `wkarts` e envie este projeto.
+2. Execute manualmente o workflow **Mirror base images to GHCR**.
+3. Aguarde a publicação das seis imagens-base no GHCR.
+4. Para pacotes privados, autentique o Docker local/VPS no GHCR.
 
 Nenhuma imagem produzida pelo projeto é publicada no Docker Hub. As imagens da
 aplicação e os espelhos de runtime ficam no GHCR do próprio repositório/owner.
@@ -154,7 +144,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.2`
+`1.1.1`
 
 ## Licença
 

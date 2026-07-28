@@ -4,7 +4,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão sem o prefixo v (ex.: 1.1.2)"
+        description: "Versão sem o prefixo v (ex.: 1.1.1)"
         required: true
 
 permissions:
@@ -25,25 +25,6 @@ jobs:
           VERSION: ${{ inputs.version }}
         run: |
           [[ "$VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+$ ]]
-
-      - name: Autenticar no GHCR
-        uses: docker/login-action@v3
-        with:
-          registry: ghcr.io
-          username: ${{ github.actor }}
-          password: ${{ secrets.GITHUB_TOKEN }}
-
-      - name: Confirmar release e imagens
-        env:
-          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-          VERSION: ${{ inputs.version }}
-        run: |
-          set -Eeuo pipefail
-          gh release view "v${VERSION}" --repo "$GITHUB_REPOSITORY" >/dev/null
-
-          for image in pdf2ofx-app pdf2ofx-gateway pdf2ofx-converter; do
-            docker buildx imagetools inspect               "ghcr.io/${GITHUB_REPOSITORY_OWNER}/${image}:${VERSION}"               >/dev/null
-          done
 
       - name: Deploy por SSH
         uses: appleboy/ssh-action@v1.2.2
