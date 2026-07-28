@@ -1,5 +1,32 @@
 # Changelog
 
+## [1.1.2] - 2026-07-28
+
+### Corrigido
+
+- build e release agora são iniciados automaticamente após o workflow `CI`
+  concluir com sucesso em `main`;
+- o workflow de release passou a criar a tag Git, GitHub Release, ZIP, TAR.GZ,
+  lista de imagens e checksums SHA-256;
+- o workflow de imagens passou a aceitar execução reutilizável e manual com
+  versão e commit explicitamente validados;
+- o espelhamento das imagens-base no GHCR tornou-se pré-requisito automático da
+  release e preserva manifestos multi-arquitetura;
+- removida a dependência de criação manual da tag para iniciar a publicação;
+- adicionada prevenção contra republicação acidental da mesma versão;
+- adicionada validação de consistência entre `VERSION`, pacote Python,
+  documentação e imagens;
+- corrigida a URL de clone para `wkarts/pdf2ofxplatform.git`;
+- os pacotes da release também são preservados como artifact do workflow;
+- o deploy valida previamente a existência da release e das três imagens no
+  GHCR.
+
+### Publicação
+
+- imagens `pdf2ofx-app`, `pdf2ofx-gateway` e `pdf2ofx-converter` publicadas no
+  GHCR com tags `X.Y.Z`, `X.Y`, `sha-*` e `latest`;
+- release vinculada exatamente ao commit aprovado pelo CI.
+
 ## [1.1.1] - 2026-07-28
 
 ### Corrigido

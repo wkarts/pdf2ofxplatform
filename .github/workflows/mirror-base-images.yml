@@ -1,14 +1,20 @@
 name: Mirror base images to GHCR
 
 on:
+  workflow_call:
   workflow_dispatch:
 
 permissions:
   contents: read
   packages: write
 
+concurrency:
+  group: mirror-base-images-${{ github.repository }}
+  cancel-in-progress: false
+
 jobs:
   mirror:
+    name: Mirror ${{ matrix.target }}
     runs-on: ubuntu-latest
     strategy:
       fail-fast: false
@@ -27,14 +33,23 @@ jobs:
           - source: postgres:17-alpine
             target: pdf2ofx-base-postgres:17-alpine
     steps:
-      - uses: docker/login-action@v3
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Autenticar no GHCR
+        uses: docker/login-action@v3
         with:
           registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - name: Espelhar imagem
+
+      - name: Espelhar manifesto multi-arquitetura
+        env:
+          SOURCE_IMAGE: docker.io/library/${{ matrix.source }}
+          TARGET_IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}
         run: |
-          docker pull "${{ matrix.source }}"
-          docker tag "${{ matrix.source }}" \
-            "ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}"
-          docker push "ghcr.io/${{ github.repository_owner }}/${{ matrix.target }}"
+          set -Eeuo pipefail
+          docker buildx imagetools create \
+            --tag "$TARGET_IMAGE" \
+            "$SOURCE_IMAGE"
+          docker buildx imagetools inspect "$TARGET_IMAGE"

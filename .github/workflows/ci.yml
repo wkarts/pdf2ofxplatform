@@ -9,6 +9,14 @@ permissions:
   contents: read
 
 jobs:
+  release-metadata:
+    name: Metadados da release
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+      - name: Validar consistência da versão
+        run: bash deploy/scripts/validate-version.sh
+
   laravel:
     runs-on: ubuntu-latest
     defaults:

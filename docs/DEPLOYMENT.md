@@ -9,17 +9,22 @@
 - domínio configurado;
 - Git e `curl`.
 
-## Preparar o GHCR
+## Build, GHCR e GitHub Release
 
-Execute no GitHub, nesta ordem:
+O merge em `main` dispara o workflow **CI**. Após a conclusão com sucesso, o
+workflow **Build, publish and release** é iniciado automaticamente e:
 
-1. **Mirror base images to GHCR**;
-2. crie a tag `v1.1.1` ou execute **Build and publish images**;
-3. confirme a existência das imagens:
-   - `pdf2ofx-app`;
-   - `pdf2ofx-gateway`;
-   - `pdf2ofx-converter`;
-   - espelhos `pdf2ofx-base-*`.
+1. valida a versão declarada em `VERSION`;
+2. evita republicar uma release já existente;
+3. espelha as imagens-base oficiais no GHCR;
+4. compila as imagens `pdf2ofx-app`, `pdf2ofx-gateway` e
+   `pdf2ofx-converter`;
+5. publica as tags `X.Y.Z`, `X.Y`, `sha-*` e `latest`;
+6. cria a tag Git `vX.Y.Z` e a GitHub Release;
+7. anexa os pacotes ZIP/TAR.GZ e os checksums SHA-256 à release e ao workflow.
+
+O workflow pode ser disparado manualmente em **Actions → Build, publish and
+release**, inclusive com a opção `force` para recompilar uma release existente.
 
 Para pacotes privados, gere um token com `read:packages` e autentique a VPS:
 
@@ -32,7 +37,7 @@ echo "$GHCR_TOKEN" | docker login ghcr.io -u "$GHCR_USER" --password-stdin
 ```bash
 sudo mkdir -p /opt/pdf2ofx
 sudo chown "$USER":"$USER" /opt/pdf2ofx
-git clone git@github.com:wkarts/pdf2ofx-platform.git /opt/pdf2ofx
+git clone git@github.com:wkarts/pdf2ofxplatform.git /opt/pdf2ofx
 cd /opt/pdf2ofx
 cp .env.production.example .env
 chmod +x deploy/scripts/*.sh
@@ -52,7 +57,7 @@ Gere uma chave Laravel sem instalar Composer no host:
 
 ```bash
 docker run --rm \
-  ghcr.io/wkarts/pdf2ofx-app:1.1.1 \
+  ghcr.io/wkarts/pdf2ofx-app:1.1.2 \
   php artisan key:generate --show
 ```
 
@@ -99,5 +104,5 @@ pelo worker e os artefatos temporários expiram pelo TTL.
 ## Rollback
 
 ```bash
-./deploy/scripts/rollback.sh 1.1.1
+./deploy/scripts/rollback.sh 1.1.2
 ```

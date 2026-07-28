@@ -1,24 +1,75 @@
 name: Build and publish images
 
 on:
-  push:
-    tags: ["v*.*.*"]
+  workflow_call:
+    inputs:
+      version:
+        description: Versão sem o prefixo v
+        required: true
+        type: string
+      ref:
+        description: Commit, tag ou branch que será compilado
+        required: true
+        type: string
   workflow_dispatch:
+    inputs:
+      version:
+        description: "Versão sem o prefixo v (ex.: 1.1.2)"
+        required: true
+        type: string
+      ref:
+        description: Commit, tag ou branch que será compilado
+        required: true
+        default: main
+        type: string
 
 permissions:
   contents: read
   packages: write
 
 concurrency:
-  group: build-images-${{ github.ref }}
+  group: build-images-${{ inputs.version }}-${{ inputs.ref }}
   cancel-in-progress: false
 
-env:
-  REGISTRY: ghcr.io
-  NAMESPACE: ${{ github.repository_owner }}
-
 jobs:
+  validate:
+    name: Validar versão e origem
+    runs-on: ubuntu-latest
+    outputs:
+      version: ${{ steps.metadata.outputs.version }}
+      source_sha: ${{ steps.metadata.outputs.source_sha }}
+    steps:
+      - name: Obter código-fonte
+        uses: actions/checkout@v5
+        with:
+          ref: ${{ inputs.ref }}
+          fetch-depth: 0
+
+      - name: Validar metadados
+        id: metadata
+        env:
+          REQUESTED_VERSION: ${{ inputs.version }}
+        run: |
+          set -Eeuo pipefail
+          VERSION="$(tr -d '[:space:]' < VERSION)"
+
+          if [[ ! "$REQUESTED_VERSION" =~ ^[0-9]+\.[0-9]+\.[0-9]+(-[0-9A-Za-z.-]+)?$ ]]; then
+            echo "Versão inválida: $REQUESTED_VERSION" >&2
+            exit 1
+          fi
+
+          if [[ "$VERSION" != "$REQUESTED_VERSION" ]]; then
+            echo "A versão solicitada ($REQUESTED_VERSION) difere do arquivo VERSION ($VERSION)." >&2
+            exit 1
+          fi
+
+          echo "version=$VERSION" >> "$GITHUB_OUTPUT"
+          echo "source_sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
+
   build:
+    name: Build ${{ matrix.image }}
+    needs: validate
+    runs-on: ubuntu-latest
     strategy:
       fail-fast: false
       matrix:
@@ -42,34 +93,54 @@ jobs:
             target: runtime
             build_args: |
               PYTHON_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-python:3.13-slim-bookworm
-    runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v5
-      - uses: docker/setup-buildx-action@v3
-      - uses: docker/login-action@v3
+      - name: Obter código-fonte validado
+        uses: actions/checkout@v5
         with:
-          registry: ${{ env.REGISTRY }}
+          ref: ${{ needs.validate.outputs.source_sha }}
+
+      - name: Configurar Docker Buildx
+        uses: docker/setup-buildx-action@v3
+
+      - name: Autenticar no GHCR
+        uses: docker/login-action@v3
+        with:
+          registry: ghcr.io
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
-      - id: meta
+
+      - name: Gerar tags e labels OCI
+        id: meta
         uses: docker/metadata-action@v5
         with:
-          images: ${{ env.REGISTRY }}/${{ env.NAMESPACE }}/${{ matrix.image }}
+          images: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}
           tags: |
-            type=semver,pattern={{version}}
-            type=semver,pattern={{major}}.{{minor}}
-            type=sha,prefix=sha-
-            type=raw,value=latest,enable=${{ startsWith(github.ref, 'refs/tags/v') }}
-      - uses: docker/build-push-action@v6
+            type=semver,pattern={{version}},value=v${{ needs.validate.outputs.version }}
+            type=semver,pattern={{major}}.{{minor}},value=v${{ needs.validate.outputs.version }}
+            type=raw,value=sha-${{ needs.validate.outputs.source_sha }}
+            type=raw,value=latest
+          labels: |
+            org.opencontainers.image.source=${{ github.server_url }}/${{ github.repository }}
+            org.opencontainers.image.revision=${{ needs.validate.outputs.source_sha }}
+            org.opencontainers.image.version=${{ needs.validate.outputs.version }}
+
+      - name: Compilar e publicar imagem
+        uses: docker/build-push-action@v6
         with:
           context: .
           file: ${{ matrix.dockerfile }}
           target: ${{ matrix.target }}
           build-args: ${{ matrix.build_args }}
+          platforms: linux/amd64
           push: true
           tags: ${{ steps.meta.outputs.tags }}
           labels: ${{ steps.meta.outputs.labels }}
           cache-from: type=gha,scope=${{ matrix.image }}
           cache-to: type=gha,mode=max,scope=${{ matrix.image }}
-          provenance: true
+          provenance: mode=max
           sbom: true
+
+      - name: Confirmar imagem publicada
+        env:
+          IMAGE: ghcr.io/${{ github.repository_owner }}/${{ matrix.image }}:${{ needs.validate.outputs.version }}
+        run: docker buildx imagetools inspect "$IMAGE"
