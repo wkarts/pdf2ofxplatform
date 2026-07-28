@@ -6,7 +6,7 @@ DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$DEPLOY_DIR/lib.sh"
 
 DOMAIN=""
-VERSION="1.1.6"
+VERSION="1.1.7"
 NAMESPACE="wkarts"
 WEB_PORT="8080"
 FORCE="false"
@@ -18,7 +18,7 @@ Uso:
 
 Opções:
   --domain URL       URL pública obrigatória, com https://
-  --version X.Y.Z    versão das imagens (padrão: 1.1.6)
+  --version X.Y.Z    versão das imagens (padrão: 1.1.7)
   --namespace NOME   namespace do GHCR (padrão: wkarts)
   --port PORTA       porta local para o CloudPanel (padrão: 8080)
   --force            recriar o .env existente

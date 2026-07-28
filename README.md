@@ -56,7 +56,7 @@ destaca lançamentos de baixa confiança e mantém o OFX editável antes do down
 ```text
 apps/web                 Laravel, interface e metadados
 services/converter       FastAPI, Celery, PDF/OCR, parsers e OFX
-deploy                   scripts, systemd e configuração CloudPanel
+deploy                   Docker, Dockge, scripts e configuração CloudPanel
 docs                     arquitetura, API, parsers e implantação
 .github/workflows        CI, imagens GHCR, release e deploy
 compose.yaml              ambiente completo
@@ -93,7 +93,7 @@ executada sem PHP, Composer ou Python instalados na VPS:
 cd deploy/docker
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.6 \
+  --version 1.1.7 \
   --namespace wkarts \
   --port 8080
 ```
@@ -108,6 +108,24 @@ O pacote inclui Compose independente, `.env.example`, instalação, atualizaçã
 rollback, backup, restauração, logs, health check, modelo systemd e configuração
 de VHost. Consulte `deploy/docker/README.md`.
 A GitHub Release também publica um arquivo separado `pdf2ofx-docker-deployment-X.Y.Z.zip`, pronto para copiar diretamente para a VPS.
+
+## Implantação com Dockge
+
+O diretório `deploy/dockge/` instala o Dockge e registra o PDF2OFX em
+`/opt/stacks/pdf2ofx`, com geração automática das credenciais e início completo
+da stack:
+
+```bash
+cd deploy/dockge
+sudo -E bash install-vps.sh \
+  --domain https://pdf2ofx.codisplan.com.br \
+  --version 1.1.7 \
+  --namespace wkarts
+```
+
+O Dockge fica disponível apenas em `127.0.0.1:5001`, e a aplicação em
+`127.0.0.1:8080`. A release publica também
+`pdf2ofx-dockge-deployment-X.Y.Z.zip`. Consulte `deploy/dockge/README.md`.
 
 ## Inicialização local
 
@@ -175,12 +193,13 @@ Validações disponíveis:
 - `docs/API.md`;
 - `docs/PARSERS.md`;
 - `docs/DEPLOYMENT.md`;
+- `docs/DOCKGE.md`;
 - `docs/VALIDATION.md`;
 - `deploy/cloudpanel/README.md`.
 
 ## Versão
 
-`1.1.6`
+`1.1.7`
 
 ## Licença
 

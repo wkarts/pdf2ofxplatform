@@ -1,4 +1,4 @@
-# Validação da versão 1.1.6
+# Validação da versão 1.1.7
 
 ## Falha analisada
 

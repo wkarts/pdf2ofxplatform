@@ -1,9 +1,9 @@
-# Pull Request 1.1.6
+# Pull Request 1.1.7
 
 ## Branch
 
 ```text
-fix/gateway-runtime-validation-v1.1.6
+fix/gateway-runtime-validation-v1.1.7
 ```
 
 ## Título
@@ -42,7 +42,7 @@ validação anterior não conectava o container a essa resolução de nomes.
 - logs do container exibidos automaticamente em caso de falha;
 - limpeza garantida do container temporário;
 - `validate-version.sh` reforçado para exigir o novo mecanismo;
-- versão atualizada para `1.1.6`;
+- versão atualizada para `1.1.7`;
 - documentação, changelog e pacote Docker atualizados.
 
 ## Resultado esperado
@@ -51,7 +51,7 @@ validação anterior não conectava o container a essa resolução de nomes.
 2. o merge em `main` conclui o workflow `CI`;
 3. `Build, publish and release` é iniciado automaticamente;
 4. as imagens `app`, `gateway` e `converter` são publicadas no GHCR;
-5. a tag `v1.1.6` e a GitHub Release são criadas;
+5. a tag `v1.1.7` e a GitHub Release são criadas;
 6. os pacotes de código e de implantação Docker são anexados à release.
 
 ## Validações

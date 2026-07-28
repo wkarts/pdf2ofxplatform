@@ -52,7 +52,7 @@ export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES' # somente para pacotes privados
 
 bash install.sh \
   --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.6 \
+  --version 1.1.7 \
   --namespace wkarts \
   --port 8080
 ```
@@ -62,6 +62,39 @@ No CloudPanel, crie **Create a Reverse Proxy** apontando para:
 ```text
 http://127.0.0.1:8080
 ```
+
+## Implantação gerenciada pelo Dockge
+
+O pacote `deploy/dockge/` prepara o gerenciador e a stack no padrão oficial de
+diretórios do Dockge:
+
+```text
+/opt/dockge
+/opt/stacks/pdf2ofx/compose.yaml
+```
+
+Instalação completa:
+
+```bash
+cd deploy/dockge
+export GHCR_USER=wkarts
+export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES' # somente para imagens privadas
+sudo -E bash install-vps.sh \
+  --domain https://pdf2ofx.codisplan.com.br \
+  --version 1.1.7 \
+  --namespace wkarts
+```
+
+Destinos no CloudPanel:
+
+```text
+Aplicação: http://127.0.0.1:8080
+Dockge:    http://127.0.0.1:5001
+```
+
+A exposição web do Dockge é opcional. Para maior isolamento, mantenha a porta
+somente no loopback e acesse por túnel SSH. A documentação completa está em
+`deploy/dockge/README.md`.
 
 ## Build, GHCR e GitHub Release
 
@@ -74,7 +107,7 @@ builds reais dos containers, o workflow **Build, publish and release**:
 4. publica as tags `X.Y.Z`, `X.Y`, `sha-*` e `latest`;
 5. cria a tag `vX.Y.Z`;
 6. publica a GitHub Release;
-7. anexa o código-fonte, um pacote Docker independente, a relação de imagens e os checksums.
+7. anexa o código-fonte, os pacotes Docker e Dockge, a relação de imagens e os checksums.
 
 A release só é criada quando as três imagens forem publicadas com sucesso.
 
@@ -82,8 +115,8 @@ A release só é criada quando as três imagens forem publicadas com sucesso.
 
 ```bash
 cd /opt/pdf2ofx/deploy/docker
-bash update.sh 1.1.6
-bash rollback.sh 1.1.6
+bash update.sh 1.1.7
+bash rollback.sh 1.1.7
 ```
 
 ## Backup e restauração

@@ -1,5 +1,25 @@
 # Changelog
 
+## [1.1.7] - 2026-07-28
+
+### Adicionado
+
+- implantação completa com Dockge em `deploy/dockge/`;
+- instalador idempotente para Debian/Ubuntu, com instalação opcional do Docker;
+- criação automática de `/opt/dockge` e `/opt/stacks/pdf2ofx`;
+- geração segura de `APP_KEY`, senhas PostgreSQL/Redis e chave interna da API;
+- autenticação opcional no GHCR sem persistir o token no `.env` da aplicação;
+- scripts para atualização, migrations, backup, status, logs e health check;
+- modelos de Reverse Proxy do CloudPanel para a aplicação e para o Dockge;
+- pacote de release independente `pdf2ofx-dockge-deployment-X.Y.Z`.
+
+### Validado
+
+- sintaxe dos scripts Shell do Dockge;
+- configuração Compose do Dockge e da stack PDF2OFX;
+- consistência das imagens e metadados da versão;
+- geração dos pacotes ZIP e TAR.GZ do Dockge no workflow de release.
+
 ## [1.1.6] - 2026-07-28
 
 ### Corrigido

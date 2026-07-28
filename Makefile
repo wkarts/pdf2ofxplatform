@@ -71,8 +71,8 @@ clean:
 	$(COMPOSE) down -v --remove-orphans
 
 prod-install:
-	@test -n "$(DOMAIN)" || (echo "Uso: make prod-install DOMAIN=https://dominio [VERSION=1.1.6]" >&2; exit 1)
-	bash deploy/docker/install.sh --domain "$(DOMAIN)" --version "$(or $(VERSION),1.1.6)"
+	@test -n "$(DOMAIN)" || (echo "Uso: make prod-install DOMAIN=https://dominio [VERSION=1.1.7]" >&2; exit 1)
+	bash deploy/docker/install.sh --domain "$(DOMAIN)" --version "$(or $(VERSION),1.1.7)"
 
 prod-deploy:
 	bash deploy/docker/deploy.sh
