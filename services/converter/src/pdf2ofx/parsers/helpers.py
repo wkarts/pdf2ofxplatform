@@ -1,8 +1,8 @@
 from __future__ import annotations
 
 from collections import defaultdict
-from dataclasses import dataclass
 from collections.abc import Iterable
+from dataclasses import dataclass
 
 from pdf2ofx.domain.models import PositionedWord
 from pdf2ofx.domain.normalization import clean_text

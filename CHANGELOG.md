@@ -1,5 +1,20 @@
 # Changelog
 
+## [1.1.1] - 2026-07-28
+
+### Corrigido
+
+- Ordenação dos imports padrão em `parsers/helpers.py`, eliminando a falha `Ruff I001` no job `converter` do GitHub Actions.
+- Metadados, exemplos de imagens GHCR e documentação de implantação atualizados para a versão 1.1.1.
+
+### Validado
+
+- `ruff check src tests`;
+- compilação dos módulos Python;
+- suíte de testes do conversor;
+- sintaxe dos arquivos PHP, JSON, YAML e Shell;
+- integridade do pacote de distribuição.
+
 ## [1.1.0] - 2026-07-28
 
 ### Corrigido

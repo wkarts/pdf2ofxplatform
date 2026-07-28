@@ -144,7 +144,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.0`
+`1.1.1`
 
 ## Licença
 
