@@ -3,6 +3,10 @@ name: Mirror base images to GHCR
 on:
   workflow_call:
     inputs:
+      ref:
+        description: Commit, tag ou branch que contém os scripts validados
+        required: true
+        type: string
       force:
         description: Recriar imagens-base mesmo quando já existirem no GHCR
         required: false
@@ -10,6 +14,11 @@ on:
         type: boolean
   workflow_dispatch:
     inputs:
+      ref:
+        description: Commit, tag ou branch que contém os scripts
+        required: true
+        default: main
+        type: string
       force:
         description: Recriar imagens-base mesmo quando já existirem no GHCR
         required: true
@@ -37,8 +46,10 @@ jobs:
           username: ${{ github.actor }}
           password: ${{ secrets.GITHUB_TOKEN }}
 
-      - name: Obter scripts de implantação
+      - name: Obter scripts de implantação validados
         uses: actions/checkout@v6
+        with:
+          ref: ${{ inputs.ref }}
 
       - name: Espelhar imagens sequencialmente com retry
         env:

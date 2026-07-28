@@ -14,7 +14,7 @@ on:
   workflow_dispatch:
     inputs:
       version:
-        description: "Versão sem o prefixo v (ex.: 1.1.3)"
+        description: "Versão sem o prefixo v (ex.: 1.1.4)"
         required: true
         type: string
       ref:

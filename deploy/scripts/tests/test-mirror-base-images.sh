@@ -53,7 +53,9 @@ export MAX_ATTEMPTS="3"
 export INITIAL_DELAY_SECONDS="0"
 export BETWEEN_IMAGES_DELAY_SECONDS="0"
 
-"$ROOT_DIR/deploy/scripts/mirror-base-images.sh"
+chmod -x "$ROOT_DIR/deploy/scripts/mirror-base-images.sh" 2>/dev/null || true
+
+bash "$ROOT_DIR/deploy/scripts/mirror-base-images.sh"
 
 pull_count="$(grep -c '^pull --platform linux/amd64 docker.io/library/redis:8-alpine$' "$MOCK_LOG")"
 push_count="$(grep -c '^push ghcr.io/wkarts/pdf2ofx-base-redis:8-alpine$' "$MOCK_LOG")"

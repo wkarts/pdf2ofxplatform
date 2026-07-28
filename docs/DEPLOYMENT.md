@@ -57,14 +57,14 @@ Gere uma chave Laravel sem instalar Composer no host:
 
 ```bash
 docker run --rm \
-  ghcr.io/wkarts/pdf2ofx-app:1.1.3 \
+  ghcr.io/wkarts/pdf2ofx-app:1.1.4 \
   php artisan key:generate --show
 ```
 
 Cole o resultado em `APP_KEY` e execute:
 
 ```bash
-./deploy/scripts/deploy.sh
+bash deploy/scripts/deploy.sh
 ```
 
 ## CloudPanel
@@ -95,7 +95,7 @@ O workflow recebe uma versão `X.Y.Z`, faz checkout da tag, altera as imagens no
 ## Backup
 
 ```bash
-./deploy/scripts/backup.sh
+bash deploy/scripts/backup.sh
 ```
 
 Agende no cron. O script guarda somente o PostgreSQL. O PDF original é removido
@@ -104,5 +104,5 @@ pelo worker e os artefatos temporários expiram pelo TTL.
 ## Rollback
 
 ```bash
-./deploy/scripts/rollback.sh 1.1.3
+bash deploy/scripts/rollback.sh 1.1.4
 ```
