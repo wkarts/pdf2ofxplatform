@@ -83,6 +83,32 @@ opção de recompilar uma versão já existente.
 Nenhuma imagem produzida pelo projeto é publicada no Docker Hub. As imagens da
 aplicação e os espelhos de runtime ficam no GHCR do próprio repositório/owner.
 
+
+## Implantação Docker pronta
+
+A implantação operacional está concentrada em `deploy/docker/` e pode ser
+executada sem PHP, Composer ou Python instalados na VPS:
+
+```bash
+cd deploy/docker
+bash install.sh \
+  --domain https://pdf2ofx.codisplan.com.br \
+  --version 1.1.6 \
+  --namespace wkarts \
+  --port 8080
+```
+
+Depois, no CloudPanel, crie um **Reverse Proxy** para:
+
+```text
+http://127.0.0.1:8080
+```
+
+O pacote inclui Compose independente, `.env.example`, instalação, atualização,
+rollback, backup, restauração, logs, health check, modelo systemd e configuração
+de VHost. Consulte `deploy/docker/README.md`.
+A GitHub Release também publica um arquivo separado `pdf2ofx-docker-deployment-X.Y.Z.zip`, pronto para copiar diretamente para a VPS.
+
 ## Inicialização local
 
 ```bash
@@ -154,7 +180,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.4`
+`1.1.6`
 
 ## Licença
 

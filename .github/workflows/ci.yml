@@ -7,6 +7,7 @@ on:
 
 permissions:
   contents: read
+  packages: read
 
 jobs:
   release-metadata:
@@ -18,6 +19,7 @@ jobs:
         run: bash deploy/scripts/validate-version.sh
 
   laravel:
+    name: Laravel
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -40,6 +42,7 @@ jobs:
         run: php artisan test
 
   converter:
+    name: Conversor Python
     runs-on: ubuntu-latest
     defaults:
       run:
@@ -61,11 +64,27 @@ jobs:
       - run: pytest --cov=pdf2ofx --cov-report=term-missing
 
   compose:
+    name: Docker Compose
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v6
-      - run: cp .env.example .env
-      - run: docker compose --env-file .env config >/dev/null
+      - name: Validar Compose do repositório
+        run: |
+          cp .env.example .env
+          docker compose --env-file .env config >/dev/null
+          docker compose --env-file .env -f compose.yaml -f compose.production.yaml config >/dev/null
+      - name: Validar pacote independente de implantação
+        run: |
+          cp deploy/docker/.env.example deploy/docker/.env
+          cmp -s deploy/docker/compose.yaml deploy/docker/docker-compose.yml
+          docker compose \
+            --env-file deploy/docker/.env \
+            -f deploy/docker/compose.yaml \
+            config >/dev/null
+          docker compose \
+            --env-file deploy/docker/.env \
+            -f deploy/docker/docker-compose.yml \
+            config >/dev/null
 
   workflows:
     name: Workflows e scripts de implantação
@@ -84,11 +103,30 @@ jobs:
 
       - name: Validar scripts Shell
         run: |
-          find deploy/scripts -type f -name "*.sh" -print0 \
+          find deploy -type f -name "*.sh" -print0 \
             | xargs -0 -n1 bash -n
 
       - name: Testar espelhamento sequencial e retry
         run: bash deploy/scripts/tests/test-mirror-base-images.sh
+
+      - name: Validar instalação da extensão Redis sem PECL REST
+        run: |
+          set -Eeuo pipefail
+          dockerfile="apps/web/docker/Dockerfile"
+
+          if grep -nE 'pecl[[:space:]]+install[[:space:]]+redis' "$dockerfile"; then
+            echo "ERRO: o build não pode depender do serviço REST do PECL." >&2
+            exit 1
+          fi
+
+          grep -Fq 'REDIS_EXTENSION_VERSION=6.3.0' "$dockerfile"
+          grep -Fq 'phpredis/archive/refs/tags/${REDIS_EXTENSION_VERSION}.tar.gz' "$dockerfile"
+          grep -Fq 'COPY apps/web/public /var/www/html/public' "$dockerfile"
+
+          if grep -Fq 'COPY --from=app /var/www/html/public' "$dockerfile"; then
+            echo "ERRO: o gateway não deve recompilar o estágio PHP." >&2
+            exit 1
+          fi
 
       - name: Impedir actions obsoletas e espelhamento multi-arquitetura em paralelo
         run: |
@@ -109,9 +147,10 @@ jobs:
             exit 1
           fi
 
-  dockerfiles:
-    name: Validar Dockerfile ${{ matrix.target }}
+  docker-build:
+    name: Build real ${{ matrix.target }}
     runs-on: ubuntu-latest
+    timeout-minutes: 45
     strategy:
       fail-fast: false
       max-parallel: 1
@@ -119,17 +158,62 @@ jobs:
         include:
           - file: apps/web/docker/Dockerfile
             target: app
+            image: pdf2ofx-ci-app
+            build_args: |
+              PHP_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-php:8.4-fpm-alpine
+              COMPOSER_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-composer:2.8
+              REDIS_EXTENSION_VERSION=6.3.0
           - file: apps/web/docker/Dockerfile
             target: gateway
+            image: pdf2ofx-ci-gateway
+            build_args: |
+              NGINX_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-nginx:1.28-alpine
           - file: services/converter/Dockerfile
             target: runtime
+            image: pdf2ofx-ci-converter
+            build_args: |
+              PYTHON_BASE_IMAGE=ghcr.io/${{ github.repository_owner }}/pdf2ofx-base-python:3.13-slim-bookworm
     steps:
       - uses: actions/checkout@v6
       - uses: docker/setup-buildx-action@v4
-      - name: Executar verificação estática do Dockerfile
+      - name: Autenticar no GHCR
+        uses: docker/login-action@v4
+        with:
+          registry: ghcr.io
+          username: ${{ github.actor }}
+          password: ${{ secrets.GITHUB_TOKEN }}
+      - name: Compilar imagem integralmente
+        env:
+          BUILD_ARGS_TEXT: ${{ matrix.build_args }}
         run: |
+          set -Eeuo pipefail
+          build_args=()
+          while IFS= read -r item; do
+            [[ -n "$item" ]] && build_args+=(--build-arg "$item")
+          done <<< "$BUILD_ARGS_TEXT"
+
           docker buildx build \
-            --check \
             --file "${{ matrix.file }}" \
             --target "${{ matrix.target }}" \
+            --platform linux/amd64 \
+            --pull \
+            --load \
+            --tag "${{ matrix.image }}:${GITHUB_SHA}" \
+            --cache-from "type=gha,scope=ci-${{ matrix.target }}" \
+            --cache-to "type=gha,mode=max,scope=ci-${{ matrix.target }}" \
+            "${build_args[@]}" \
             .
+      - name: Validar runtime
+        run: |
+          case "${{ matrix.target }}" in
+            app)
+              docker run --rm --entrypoint php "${{ matrix.image }}:${GITHUB_SHA}" -m | grep -Fx redis
+              docker run --rm --entrypoint php "${{ matrix.image }}:${GITHUB_SHA}" artisan --version
+              ;;
+            gateway)
+              bash deploy/scripts/validate-gateway-image.sh "${{ matrix.image }}:${GITHUB_SHA}"
+              ;;
+            runtime)
+              docker run --rm --entrypoint python "${{ matrix.image }}:${GITHUB_SHA}" -c 'import pdf2ofx; print(pdf2ofx.__version__)'
+              ;;
+          esac

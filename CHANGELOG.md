@@ -1,5 +1,39 @@
 # Changelog
 
+## [1.1.6] - 2026-07-28
+
+### Corrigido
+
+- validação isolada da imagem `pdf2ofx-gateway`, que falhava porque o NGINX tentava resolver o upstream `app:9000` fora da rede do Docker Compose;
+- teste do gateway agora registra explicitamente o hostname `app`, valida `nginx -t`, inicia o container e confirma o endpoint `/health`;
+- validação de versão reforçada para exigir o script reutilizável `validate-gateway-image.sh` e sua utilização pelo CI.
+
+### Validado
+
+- logs do GitHub Actions confirmam que os builds `app` e `converter` foram aprovados e que a única falha ocorreu na validação isolada do gateway;
+- sintaxe dos workflows e scripts Shell;
+- metadados da versão;
+- pacote independente de implantação Docker;
+- testes Python e sintaxe PHP.
+
+## [1.1.5] - 2026-07-28
+
+### Corrigido
+
+- removida a dependência do endpoint REST do PECL durante o build da extensão Redis;
+- extensão PhpRedis compilada a partir de uma versão fixa do código-fonte, com retry no download;
+- gateway NGINX desacoplado do estágio PHP, evitando recompilação desnecessária do Laravel;
+- CI alterado de verificação estática para build real das três imagens;
+- validação do runtime confirma Redis, Artisan, NGINX e pacote Python;
+- release permanece bloqueada quando qualquer imagem não é publicada.
+
+### Implantação
+
+- adicionado pacote independente em `deploy/docker/`;
+- incluídos Compose de produção, modelo `.env`, instalador, update, rollback, backup, restore, status, logs e health check;
+- incluídos modelos para CloudPanel Reverse Proxy e systemd;
+- documentação de implantação reestruturada com procedimento completo.
+
 ## [1.1.4] - 2026-07-28
 
 ### Corrigido

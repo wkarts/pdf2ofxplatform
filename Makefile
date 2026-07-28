@@ -1,7 +1,7 @@
 SHELL := /bin/bash
 COMPOSE := docker compose --env-file .env
 
-.PHONY: help init up down restart logs ps test lint migrate shell-web shell-converter build pull deploy clean
+.PHONY: help init up down restart logs ps test lint migrate shell-web shell-converter build pull deploy clean prod-install prod-deploy prod-status prod-backup
 
 help:
 	@printf "Comandos disponíveis:\n"
@@ -10,7 +10,11 @@ help:
 	@printf "  make down       Para o ambiente\n"
 	@printf "  make logs       Acompanha os logs\n"
 	@printf "  make test       Executa testes PHP e Python\n"
-	@printf "  make deploy     Atualiza imagens e executa deploy de produção\n"
+	@printf "  make deploy     Atualiza o modelo legado na raiz do repositório\n"
+	@printf "  make prod-install DOMAIN=https://dominio Instala via deploy/docker\n"
+	@printf "  make prod-deploy Executa o deploy Docker/GHCR de produção\n"
+	@printf "  make prod-status Exibe o estado da stack de produção\n"
+	@printf "  make prod-backup Cria backup PostgreSQL e do .env\n"
 
 init:
 	@test -f .env || cp .env.example .env
@@ -65,3 +69,16 @@ deploy:
 
 clean:
 	$(COMPOSE) down -v --remove-orphans
+
+prod-install:
+	@test -n "$(DOMAIN)" || (echo "Uso: make prod-install DOMAIN=https://dominio [VERSION=1.1.6]" >&2; exit 1)
+	bash deploy/docker/install.sh --domain "$(DOMAIN)" --version "$(or $(VERSION),1.1.6)"
+
+prod-deploy:
+	bash deploy/docker/deploy.sh
+
+prod-status:
+	bash deploy/docker/status.sh
+
+prod-backup:
+	bash deploy/docker/backup.sh

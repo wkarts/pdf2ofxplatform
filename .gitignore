@@ -24,3 +24,7 @@
 *.zip
 .DS_Store
 Thumbs.db
+/deploy/docker/.env
+/deploy/docker/.env.before-*
+/deploy/docker/backups/*
+!/deploy/docker/backups/.gitignore
