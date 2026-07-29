@@ -1,8 +1,8 @@
-# Pull Request — versão 1.1.9
+# Pull Request — versão 1.2.0
 
 ## Branch
 
-`fix/laravel-env-validation-v1.1.9`
+`fix/laravel-env-validation-v1.2.0`
 
 ## Título
 

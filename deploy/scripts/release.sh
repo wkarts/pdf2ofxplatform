@@ -41,6 +41,9 @@ versioned_files = [
     Path("deploy/dockge/pdf2ofx/.env.example"),
     Path("deploy/dockge/install-vps.sh"),
     Path("deploy/dockge/README.md"),
+    Path("deploy/stack/.env.example"),
+    Path("deploy/stack/README.md"),
+    Path("deploy/stack/VERSION"),
 ]
 for file in versioned_files:
     text = file.read_text()
@@ -76,6 +79,14 @@ git add \
     deploy/dockge/pdf2ofx/.env.example \
     deploy/dockge/install-vps.sh \
     deploy/dockge/README.md \
+    deploy/stack/.env.example \
+    deploy/stack/README.md \
+    deploy/stack/VERSION \
+    deploy/stack/compose.yaml \
+    deploy/stack/scripts \
+    deploy/stack/cloudpanel \
+    deploy/stack/tests \
+    docs/STACK-DEPLOYMENT.md \
     CHANGELOG.md \
     "docs/VALIDATION-${VERSION}.md" \
     "docs/PULL_REQUEST-${VERSION}.md"

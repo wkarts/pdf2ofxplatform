@@ -6,7 +6,7 @@ DEPLOY_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 source "$DEPLOY_DIR/lib.sh"
 
 DOMAIN=""
-VERSION="1.1.9"
+VERSION="1.2.0"
 NAMESPACE="wkarts"
 WEB_PORT="8080"
 FORCE="false"
@@ -14,11 +14,11 @@ FORCE="false"
 usage() {
     cat <<'USAGE'
 Uso:
-  bash install.sh --domain https://pdf2ofx.exemplo.com.br [opções]
+  bash install.sh --domain https://pdf2ofx.seudominio.com.br [opções]
 
 Opções:
   --domain URL       URL pública obrigatória, com https://
-  --version X.Y.Z    versão das imagens (padrão: 1.1.9)
+  --version X.Y.Z    versão das imagens (padrão: 1.2.0)
   --namespace NOME   namespace do GHCR (padrão: wkarts)
   --port PORTA       porta local para o CloudPanel (padrão: 8080)
   --force            recriar o .env existente

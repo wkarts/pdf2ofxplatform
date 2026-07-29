@@ -1,4 +1,4 @@
-# Validação da versão 1.1.9
+# Validação da versão 1.2.0
 
 ## Escopo
 

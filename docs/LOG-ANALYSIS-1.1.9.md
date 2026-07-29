@@ -1,4 +1,4 @@
-# Análise dos logs — versão 1.1.9
+# Análise dos logs — versão 1.2.0
 
 ## Execução analisada
 
