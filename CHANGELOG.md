@@ -1,19 +1,14 @@
 # Changelog
 
-## [1.1.9] - 2026-07-28
+## [1.2.0] - 2026-07-28
 
-### Corrigido
+### Alterado
 
-- adicionado `apps/web/.env.example`, ausente na estrutura Laravel;
-- corrigida a preparação do ambiente Laravel no CI, que executava dentro de `apps/web` e tentava copiar um arquivo inexistente;
-- adicionadas validações explícitas da estrutura Laravel e do arquivo de ambiente;
-- reforçada a validação de versão para impedir a regressão do caminho e do arquivo `.env.example`.
-
-### Validado
-
-- os três builds Docker reais já estavam aprovados no log analisado;
-- conversor Python, Docker Compose, Dockge, scripts e metadados estavam aprovados;
-- a única falha restante era `cp: cannot stat '.env.example'` no job Laravel.
+- removidas referências de domínio específico e adotado `seudominio`;
+- adicionada distribuição `pdf2ofx-stack-deployment-1.2.0` para VPS com Docker, Dockge e CloudPanel já instalados;
+- implantação reduzida ao fluxo de parametrizar, baixar imagens, subir a stack e configurar o Reverse Proxy;
+- scripts de preflight, configuração, deploy, atualização, rollback, backup, restauração, logs, status e health check;
+- release e CI atualizados para validar e publicar o novo pacote.
 
 ## [1.1.8] - 2026-07-28
 

@@ -1,5 +1,20 @@
 # Implantação
 
+## Caminho recomendado: Dockge, Docker e CloudPanel já instalados
+
+Use `deploy/stack` ou o artefato `pdf2ofx-stack-deployment-1.2.0.zip`.
+
+```bash
+sudo mkdir -p /opt/stacks/pdf2ofx
+cd /opt/stacks/pdf2ofx
+bash scripts/configure.sh --domain pdf2ofx.seudominio.com.br --version 1.2.0 --namespace wkarts
+bash scripts/deploy.sh
+```
+
+Depois, no CloudPanel, crie um **Reverse Proxy** para `http://127.0.0.1:8080` e ative SSL.
+
+A documentação integral está em `deploy/stack/README.md`.
+
 A implantação oficial utiliza **Docker Compose + GHCR + CloudPanel Reverse
 Proxy**. Não é necessário instalar PHP, Composer, Python, PostgreSQL, Redis,
 Tesseract ou NGINX da aplicação diretamente na VPS.
@@ -51,8 +66,8 @@ export GHCR_USER=wkarts
 export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES' # somente para pacotes privados
 
 bash install.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts \
   --port 8080
 ```
@@ -80,8 +95,8 @@ cd deploy/dockge
 export GHCR_USER=wkarts
 export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES' # somente para imagens privadas
 sudo -E bash install-vps.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts
 ```
 
@@ -115,8 +130,8 @@ A release só é criada quando as três imagens forem publicadas com sucesso.
 
 ```bash
 cd /opt/pdf2ofx/deploy/docker
-bash update.sh 1.1.9
-bash rollback.sh 1.1.9
+bash update.sh 1.2.0
+bash rollback.sh 1.2.0
 ```
 
 ## Backup e restauração

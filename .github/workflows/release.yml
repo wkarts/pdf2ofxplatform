@@ -178,6 +178,19 @@ jobs:
           )
           rm -rf dist/dockge-package
 
+          mkdir -p "dist/stack-package/pdf2ofx-stack-deployment-${VERSION}"
+          cp -a deploy/stack/. "dist/stack-package/pdf2ofx-stack-deployment-${VERSION}/"
+          printf '%s\n' "$VERSION" > "dist/stack-package/pdf2ofx-stack-deployment-${VERSION}/VERSION"
+
+          (
+            cd dist/stack-package
+            zip -qr "../pdf2ofx-stack-deployment-${VERSION}.zip" \
+              "pdf2ofx-stack-deployment-${VERSION}"
+            tar -czf "../pdf2ofx-stack-deployment-${VERSION}.tar.gz" \
+              "pdf2ofx-stack-deployment-${VERSION}"
+          )
+          rm -rf dist/stack-package
+
           cat > "dist/container-images-${VERSION}.txt" <<EOF
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-app:${VERSION}
           ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-gateway:${VERSION}
@@ -193,6 +206,8 @@ jobs:
               "pdf2ofx-docker-deployment-${VERSION}.tar.gz" \
               "pdf2ofx-dockge-deployment-${VERSION}.zip" \
               "pdf2ofx-dockge-deployment-${VERSION}.tar.gz" \
+              "pdf2ofx-stack-deployment-${VERSION}.zip" \
+              "pdf2ofx-stack-deployment-${VERSION}.tar.gz" \
               "container-images-${VERSION}.txt" \
               > "SHA256SUMS-${VERSION}.txt"
           )
@@ -221,6 +236,8 @@ jobs:
             dist/pdf2ofx-docker-deployment-${{ needs.prepare.outputs.version }}.tar.gz
             dist/pdf2ofx-dockge-deployment-${{ needs.prepare.outputs.version }}.zip
             dist/pdf2ofx-dockge-deployment-${{ needs.prepare.outputs.version }}.tar.gz
+            dist/pdf2ofx-stack-deployment-${{ needs.prepare.outputs.version }}.zip
+            dist/pdf2ofx-stack-deployment-${{ needs.prepare.outputs.version }}.tar.gz
             dist/container-images-${{ needs.prepare.outputs.version }}.txt
             dist/SHA256SUMS-${{ needs.prepare.outputs.version }}.txt
 
@@ -236,4 +253,5 @@ jobs:
             echo "- Conversor: \`ghcr.io/${GITHUB_REPOSITORY_OWNER}/pdf2ofx-converter:${VERSION}\`"
             echo "- Pacote Docker: \`pdf2ofx-docker-deployment-${VERSION}.zip\`"
             echo "- Pacote Dockge: \`pdf2ofx-dockge-deployment-${VERSION}.zip\`"
+            echo "- Stack pronta para infraestrutura existente: \`pdf2ofx-stack-deployment-${VERSION}.zip\`"
           } >> "$GITHUB_STEP_SUMMARY"

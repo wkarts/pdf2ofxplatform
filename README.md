@@ -54,7 +54,7 @@ destaca lançamentos de baixa confiança e mantém o OFX editável antes do down
 ## Estrutura
 
 ```text
-apps/web                 Laravel, interface, `.env.example` e metadados
+apps/web                 Laravel, interface e metadados
 services/converter       FastAPI, Celery, PDF/OCR, parsers e OFX
 deploy                   Docker, Dockge, scripts e configuração CloudPanel
 docs                     arquitetura, API, parsers e implantação
@@ -92,8 +92,8 @@ executada sem PHP, Composer ou Python instalados na VPS:
 ```bash
 cd deploy/docker
 bash install.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts \
   --port 8080
 ```
@@ -118,8 +118,8 @@ da stack:
 ```bash
 cd deploy/dockge
 sudo -E bash install-vps.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts
 ```
 
@@ -141,6 +141,26 @@ A aplicação ficará disponível em:
 ```text
 http://127.0.0.1:8080
 ```
+
+## Implantação recomendada: infraestrutura já instalada
+
+Para VPS com Docker, Docker Compose V2, Dockge e CloudPanel já disponíveis, use o pacote:
+
+```text
+pdf2ofx-stack-deployment-1.2.0.zip
+```
+
+Fluxo resumido:
+
+```bash
+sudo mkdir -p /opt/stacks/pdf2ofx
+# extraia o pacote dentro desse diretório
+cd /opt/stacks/pdf2ofx
+bash scripts/configure.sh --domain pdf2ofx.seudominio.com.br --version 1.2.0 --namespace wkarts
+bash scripts/deploy.sh
+```
+
+No CloudPanel, crie um site **Reverse Proxy** para `http://127.0.0.1:8080` e ative SSL. A documentação completa está em `deploy/stack/README.md`.
 
 ## Produção com CloudPanel
 
@@ -199,7 +219,7 @@ Validações disponíveis:
 
 ## Versão
 
-`1.1.9`
+`1.2.0`
 
 ## Licença
 

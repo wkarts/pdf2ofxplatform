@@ -34,8 +34,8 @@ VPS e execute:
 ```bash
 cd deploy/dockge
 sudo -E bash install-vps.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts
 ```
 
@@ -45,8 +45,8 @@ Quando as imagens GHCR forem privadas:
 export GHCR_USER=wkarts
 export GHCR_TOKEN='TOKEN_COM_READ_PACKAGES'
 sudo -E bash install-vps.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts
 ```
 
@@ -68,7 +68,7 @@ Crie dois sites do tipo **Reverse Proxy**.
 Aplicação:
 
 ```text
-Domínio: pdf2ofx.codisplan.com.br
+Domínio: pdf2ofx.seudominio.com.br
 Destino: http://127.0.0.1:8080
 ```
 
@@ -102,7 +102,7 @@ Pelo terminal da VPS ou terminal da stack:
 
 ```bash
 cd /opt/stacks/pdf2ofx
-bash scripts/update-version.sh 1.1.9
+bash scripts/update-version.sh 1.2.0
 ```
 
 O script:

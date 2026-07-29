@@ -81,8 +81,8 @@ O token não é gravado no arquivo `.env`.
 ```bash
 cd /opt/pdf2ofx/deploy/docker
 bash install.sh \
-  --domain https://pdf2ofx.codisplan.com.br \
-  --version 1.1.9 \
+  --domain https://pdf2ofx.seudominio.com.br \
+  --version 1.2.0 \
   --namespace wkarts \
   --port 8080
 ```
@@ -155,7 +155,7 @@ Depois que a versão estiver publicada no GHCR:
 
 ```bash
 cd /opt/pdf2ofx/deploy/docker
-bash update.sh 1.1.9
+bash update.sh 1.2.0
 ```
 
 O script preserva uma cópia do `.env`, altera as três imagens, baixa os novos
@@ -164,7 +164,7 @@ artefatos, executa migrations, recria os containers e valida a aplicação.
 ## Rollback
 
 ```bash
-bash rollback.sh 1.1.9
+bash rollback.sh 1.2.0
 ```
 
 O rollback troca as imagens da aplicação. Migrações destrutivas de banco devem

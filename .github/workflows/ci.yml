@@ -106,6 +106,15 @@ jobs:
             config >/dev/null
           bash deploy/dockge/install-vps.sh --help >/dev/null
 
+      - name: Validar distribuição de stack existente
+        run: |
+          cp deploy/stack/.env.example deploy/stack/.env
+          docker compose \
+            --env-file deploy/stack/.env \
+            -f deploy/stack/compose.yaml \
+            config >/dev/null
+          bash deploy/stack/scripts/configure.sh --help >/dev/null
+
   workflows:
     name: Workflows e scripts de implantação
     runs-on: ubuntu-latest
@@ -141,6 +150,9 @@ jobs:
 
       - name: Testar instalador Dockge com Docker simulado
         run: bash deploy/dockge/tests/test-install-vps.sh
+
+      - name: Testar distribuição para infraestrutura existente
+        run: bash deploy/stack/tests/test-stack-package.sh
 
       - name: Validar instalação da extensão Redis sem PECL REST
         run: |

@@ -1,21 +1,17 @@
 # Dockge
 
-A implantação oficial para VPS pode ser gerenciada pelo Dockge. Os arquivos
-estão em `deploy/dockge` e não dependem do código-fonte durante a execução: a
-stack utiliza somente as imagens versionadas no GHCR.
+A implantação recomendada pressupõe que o Dockge já está instalado e configurado para ler `/opt/stacks`.
 
-## Topologia
+Use o pacote `pdf2ofx-stack-deployment-1.2.0` ou o diretório `deploy/stack`.
 
 ```text
 Internet
    │
 CloudPanel / NGINX / TLS
-   ├── domínio da aplicação -> 127.0.0.1:8080
-   └── domínio administrativo opcional -> 127.0.0.1:5001
+   └── pdf2ofx.seudominio.com.br -> 127.0.0.1:8080
 
-Docker
-   ├── Dockge
-   └── stack pdf2ofx
+Dockge
+   └── /opt/stacks/pdf2ofx/compose.yaml
        ├── gateway
        ├── app
        ├── queue
@@ -27,8 +23,4 @@ Docker
        └── postgres
 ```
 
-O diretório de stacks segue o padrão `/opt/stacks`, com a aplicação em
-`/opt/stacks/pdf2ofx/compose.yaml`.
-
-Consulte `deploy/dockge/README.md` para instalação, atualização, backup,
-CloudPanel e operação diária.
+O pacote não instala Docker, Dockge ou CloudPanel. Consulte `deploy/stack/README.md`.

@@ -60,6 +60,7 @@ assert_contains apps/web/docker/Dockerfile 'phpredis/archive/refs/tags/${REDIS_E
 assert_contains apps/web/docker/Dockerfile "COPY apps/web/public /var/www/html/public"
 assert_contains .github/workflows/release.yml 'pdf2ofx-docker-deployment-${VERSION}.zip'
 assert_contains .github/workflows/release.yml 'pdf2ofx-dockge-deployment-${VERSION}.zip'
+assert_contains .github/workflows/release.yml 'pdf2ofx-stack-deployment-${VERSION}.zip'
 assert_not_contains apps/web/docker/Dockerfile "pecl install redis"
 assert_not_contains apps/web/docker/Dockerfile "COPY --from=app /var/www/html/public"
 assert_contains .github/workflows/ci.yml 'bash deploy/scripts/validate-gateway-image.sh "${{ matrix.image }}:${GITHUB_SHA}"'
@@ -109,7 +110,18 @@ for required in \
     deploy/dockge/cloudpanel/dockge-reverse-proxy.conf.example \
     docs/DOCKGE.md \
     deploy/scripts/validate-gateway-image.sh \
-    apps/web/.env.example; do
+    apps/web/.env.example \
+    deploy/stack/compose.yaml \
+    deploy/stack/.env.example \
+    deploy/stack/README.md \
+    deploy/stack/VERSION \
+    deploy/stack/scripts/configure.sh \
+    deploy/stack/scripts/deploy.sh \
+    deploy/stack/scripts/post-deploy.sh \
+    deploy/stack/scripts/preflight.sh \
+    deploy/stack/tests/test-stack-package.sh \
+    deploy/stack/cloudpanel/README.md \
+    docs/STACK-DEPLOYMENT.md; do
     if [[ ! -f "$required" ]]; then
         echo "ERRO: arquivo obrigatório de implantação não encontrado: $required" >&2
         exit 1
@@ -129,6 +141,19 @@ fi
 
 if [[ ! -f "docs/PULL_REQUEST-${VERSION}.md" ]]; then
     echo "ERRO: documentação docs/PULL_REQUEST-${VERSION}.md não encontrada." >&2
+    exit 1
+fi
+
+
+assert_contains deploy/stack/VERSION "$VERSION"
+assert_contains deploy/stack/.env.example "PDF2OFX_VERSION=$VERSION"
+assert_contains deploy/stack/.env.example "APP_IMAGE=ghcr.io/wkarts/pdf2ofx-app:$VERSION"
+assert_contains deploy/stack/.env.example "APP_URL=https://pdf2ofx.seudominio.com.br"
+assert_contains deploy/stack/README.md "Este pacote **não instala** Docker, Dockge ou CloudPanel."
+
+FORBIDDEN_DOMAIN_TOKEN="$(printf '%s%s' 'codi' 'splan')"
+if grep -R -I -n -i --exclude-dir=.git --exclude='*.zip' --exclude='*.tar.gz' "$FORBIDDEN_DOMAIN_TOKEN" .; then
+    echo "ERRO: foi encontrada referência de domínio específica que deve permanecer genérica." >&2
     exit 1
 fi
 

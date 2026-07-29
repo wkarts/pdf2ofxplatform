@@ -28,3 +28,7 @@ Thumbs.db
 /deploy/docker/.env.before-*
 /deploy/docker/backups/*
 !/deploy/docker/backups/.gitignore
+/deploy/stack/.env
+/deploy/stack/.env.backup.*
+/deploy/stack/backups/*
+!/deploy/stack/backups/.gitignore
